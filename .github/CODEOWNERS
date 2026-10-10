@@ -1,0 +1,4 @@
+# Propriete du code (revue obligatoire) :
+# /src/app/ /src/components/ /src/features/ /src/lib/   -> equipe front
+# /src/server/                                          -> equipe back
+# /src/contracts/                                       -> front + back (modification conjointe)

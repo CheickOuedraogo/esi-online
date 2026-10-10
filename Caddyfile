@@ -1,0 +1,2 @@
+# Caddyfile : terminaison HTTPS (certificats automatiques) et reverse proxy
+# du domaine public vers l'application Next.js (service app, port 3000).

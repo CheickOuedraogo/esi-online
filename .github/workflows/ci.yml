@@ -1,0 +1,2 @@
+# Workflow CI (GitHub Actions) : installe les dependances puis execute
+# le lint, le typecheck TypeScript et les tests (tests/front et tests/back).

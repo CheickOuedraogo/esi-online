@@ -1,0 +1,4 @@
+# docker-compose.yml : orchestration des services suivants :
+# - app={Next.js}   : l'application fullstack (port 3000)
+# - postgres        : la base de donnees relationnelle
+# - caddy           : le reverse proxy HTTPS place devant l'app
