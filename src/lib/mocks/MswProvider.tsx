@@ -5,6 +5,7 @@
 // tant que NEXT_PUBLIC_API_MOCKING n'est pas explicitement 'disabled'.
 
 import { useEffect, useState } from 'react';
+import { markMocksReady } from './ready';
 
 function mocksEnabled(): boolean {
   if (process.env.NEXT_PUBLIC_API_MOCKING === 'enabled') return true;
@@ -16,11 +17,15 @@ export function MswProvider({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(!mocksEnabled());
 
   useEffect(() => {
-    if (!mocksEnabled()) return;
+    if (!mocksEnabled()) {
+      markMocksReady();
+      return;
+    }
     let active = true;
     void (async () => {
       const { worker } = await import('./browser');
       await worker.start({ onUnhandledRequest: 'bypass', quiet: true });
+      markMocksReady();
       if (active) setReady(true);
     })();
     return () => {

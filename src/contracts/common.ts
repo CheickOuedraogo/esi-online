@@ -18,5 +18,14 @@ export interface Paginated<T> {
   total: number;
 }
 
+export function paginatedSchema<T extends z.ZodTypeAny>(item: T) {
+  return z.object({
+    items: z.array(item),
+    page: z.number().int(),
+    pageSize: z.number().int(),
+    total: z.number().int(),
+  });
+}
+
 export const sortSchema = z.enum(['recent', 'popular', 'title']).default('recent');
 export type Sort = z.infer<typeof sortSchema>;

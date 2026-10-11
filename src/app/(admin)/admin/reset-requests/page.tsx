@@ -1,10 +1,10 @@
 import type { Metadata } from 'next';
-import { UnderConstruction } from '@/components/layout/UnderConstruction';
+import { AdminResetRequestsView } from '@/features/admin';
 
 export const metadata: Metadata = {
-  title: 'Demandes de réinitialisation',
+  title: 'Réinitialisations',
 };
 
 export default function AdminResetRequestsPage() {
-  return <UnderConstruction title="Demandes de réinitialisation" />;
+  return <AdminResetRequestsView />;
 }

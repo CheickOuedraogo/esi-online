@@ -4,3 +4,6 @@ export * from './common';
 export * from './errors';
 export * from './auth';
 export * from './catalog';
+export * from './documents';
+export * from './proposals';
+export * from './admin';

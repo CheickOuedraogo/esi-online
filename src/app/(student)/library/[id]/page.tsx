@@ -1,5 +1,15 @@
-import { UnderConstruction } from '@/components/layout/UnderConstruction';
+import type { Metadata } from 'next';
+import { DocumentDetailView } from '@/features/library';
 
-export default function LibraryDocumentDetailPage() {
-  return <UnderConstruction title="Document" description="Le détail d'un document arrivera prochainement." />;
+export const metadata: Metadata = {
+  title: 'Document',
+};
+
+export default async function DocumentDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  return <DocumentDetailView id={id} />;
 }

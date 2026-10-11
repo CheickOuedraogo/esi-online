@@ -1,3 +1,4 @@
-// Point d'entree de la fonctionnalite propositions : reexporte les composants et hooks associes.
+// Point d'entree de la fonctionnalite propositions.
 
-export {};
+export { ProposalsView } from './components/ProposalsView';
+export { NewProposalForm } from './components/NewProposalForm';
