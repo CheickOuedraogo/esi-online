@@ -1,3 +1,10 @@
-// Formulaire de creation d'un document. Soumet POST /api/admin/documents.
+import type { Metadata } from 'next';
+import { UnderConstruction } from '@/components/layout/UnderConstruction';
 
-export {};
+export const metadata: Metadata = {
+  title: 'Nouveau document',
+};
+
+export default function AdminNewDocumentPage() {
+  return <UnderConstruction title="Nouveau document" />;
+}

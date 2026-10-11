@@ -1,3 +1,5 @@
-// Detail d'un document public : metadonnees et apercu. Consomme GET /api/public/documents/[id].
+import { UnderConstruction } from '@/components/layout/UnderConstruction';
 
-export {};
+export default function PublicDocumentDetailPage() {
+  return <UnderConstruction title="Document" description="Le détail d'un document arrivera bientôt." />;
+}

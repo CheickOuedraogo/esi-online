@@ -1,3 +1,10 @@
-// Demandes de reinitialisation de mot de passe a traiter par l'admin.
+import type { Metadata } from 'next';
+import { UnderConstruction } from '@/components/layout/UnderConstruction';
 
-export {};
+export const metadata: Metadata = {
+  title: 'Demandes de réinitialisation',
+};
+
+export default function AdminResetRequestsPage() {
+  return <UnderConstruction title="Demandes de réinitialisation" />;
+}

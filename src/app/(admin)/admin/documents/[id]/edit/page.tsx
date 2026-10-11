@@ -1,3 +1,5 @@
-// Formulaire d'edition d'un document. Soumet PATCH /api/admin/documents/[id].
+import { UnderConstruction } from '@/components/layout/UnderConstruction';
 
-export {};
+export default function AdminEditDocumentPage() {
+  return <UnderConstruction title="Modifier le document" />;
+}

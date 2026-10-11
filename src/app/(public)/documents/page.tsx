@@ -1,3 +1,10 @@
-// Liste publique des documents avec recherche et filtres simplifies. Consomme GET /api/public/documents.
+import type { Metadata } from 'next';
+import { UnderConstruction } from '@/components/layout/UnderConstruction';
 
-export {};
+export const metadata: Metadata = {
+  title: 'Documents publics',
+};
+
+export default function PublicDocumentsPage() {
+  return <UnderConstruction title="Documents publics" />;
+}
