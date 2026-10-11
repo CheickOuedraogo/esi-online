@@ -1,6 +1,10 @@
-// Middleware Next.js : protege les routes /library, /proposals et /admin selon le statut de la
-// session (cookie httpOnly) et le role. Redirige vers /login si non authentifie, vers /pending si
-// le compte n'est pas encore valide, vers /change-password si un mot de passe temporaire doit etre
-// change, et renvoie 403 si le role est insuffisant.
+// Middleware Next.js : PASS-THROUGH TEMPORAIRE (front).
+// La protection reelle des routes /library, /proposals et /admin selon la session,
+// le statut et le role est livree par l'equipe back dans cette meme fonction.
+// Jusqu'a la, on laisse passer toutes les requetes sans bloquer.
 
-export {};
+import { NextResponse } from 'next/server';
+
+export function middleware() {
+  return NextResponse.next();
+}
