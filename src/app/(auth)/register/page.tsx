@@ -1,3 +1,10 @@
-// Formulaire d'inscription (nom, email, mot de passe, filiere, niveau). Soumet POST /api/auth/register.
+import type { Metadata } from 'next';
+import { RegisterForm } from '@/features/auth/components/RegisterForm';
 
-export {};
+export const metadata: Metadata = {
+  title: 'Inscription',
+};
+
+export default function RegisterPage() {
+  return <RegisterForm />;
+}

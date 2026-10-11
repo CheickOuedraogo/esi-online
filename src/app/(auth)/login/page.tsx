@@ -1,3 +1,10 @@
-// Formulaire de connexion. Soumet POST /api/auth/login puis redirige selon le statut (valide, en attente, mot de passe temporaire).
+import type { Metadata } from 'next';
+import { LoginForm } from '@/features/auth/components/LoginForm';
 
-export {};
+export const metadata: Metadata = {
+  title: 'Connexion',
+};
+
+export default function LoginPage() {
+  return <LoginForm />;
+}

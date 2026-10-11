@@ -1,3 +1,15 @@
-// Message informatif : le compte est en cours de verification par un administrateur, revenir plus tard.
+import type { Metadata } from 'next';
+import { UnderConstruction } from '@/components/layout/UnderConstruction';
 
-export {};
+export const metadata: Metadata = {
+  title: 'Compte en attente',
+};
+
+export default function PendingPage() {
+  return (
+    <UnderConstruction
+      title="Compte en attente de validation"
+      description="Un administrateur doit valider votre compte avant de pouvoir accéder à la bibliothèque."
+    />
+  );
+}

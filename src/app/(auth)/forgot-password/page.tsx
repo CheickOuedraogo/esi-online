@@ -1,3 +1,15 @@
-// Demande de reinitialisation de mot de passe (traitee par l'admin, sans email). Soumet POST /api/auth/request-reset.
+import type { Metadata } from 'next';
+import { UnderConstruction } from '@/components/layout/UnderConstruction';
 
-export {};
+export const metadata: Metadata = {
+  title: 'Mot de passe oublié',
+};
+
+export default function ForgotPasswordPage() {
+  return (
+    <UnderConstruction
+      title="Mot de passe oublié"
+      description="La réinitialisation via un administrateur arrivera prochainement."
+    />
+  );
+}

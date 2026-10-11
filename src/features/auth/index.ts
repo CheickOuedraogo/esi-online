@@ -1,3 +1,4 @@
 // Point d'entree de la fonctionnalite authentification : reexporte les composants et hooks associes.
 
-export {};
+export { LoginForm } from './components/LoginForm';
+export { RegisterForm } from './components/RegisterForm';
