@@ -2,6 +2,7 @@
 // propositions, demandes de reinitialisation).
 
 import type {
+  AdminContentInput,
   AdminStats,
   AdminUser,
   AdminUserListQuery,
@@ -46,8 +47,32 @@ export function deleteDocument(id: string): Promise<void> {
   return apiFetch<void>(`/api/admin/documents/${id}`, { method: 'DELETE' });
 }
 
+export function getAdminDocument(id: string): Promise<DocumentItem> {
+  return apiFetch<DocumentItem>(`/api/admin/documents/${id}`);
+}
+
+export function updateAdminDocument(id: string, input: AdminContentInput): Promise<DocumentItem> {
+  return apiFetch<DocumentItem>(`/api/admin/documents/${id}`, { method: 'PATCH', body: input });
+}
+
 export function listAdminProposals(): Promise<Proposal[]> {
   return apiFetch<Proposal[]>('/api/admin/proposals');
+}
+
+export function getAdminProposal(id: string): Promise<Proposal> {
+  return apiFetch<Proposal>(`/api/admin/proposals/${id}`);
+}
+
+export function updateAdminProposal(id: string, input: AdminContentInput): Promise<Proposal> {
+  return apiFetch<Proposal>(`/api/admin/proposals/${id}`, { method: 'PATCH', body: input });
+}
+
+export function deleteAdminProposal(id: string): Promise<void> {
+  return apiFetch<void>(`/api/admin/proposals/${id}`, { method: 'DELETE' });
+}
+
+export function adminProposalFileUrl(id: string): string {
+  return `/api/admin/proposals/${id}/file`;
 }
 
 export function reviewProposal(id: string, input: ReviewProposalInput): Promise<unknown> {

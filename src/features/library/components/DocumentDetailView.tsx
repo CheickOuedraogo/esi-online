@@ -5,7 +5,8 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { Alert, Badge, Button, Card, CardContent, PageHeader, Spinner } from '@/components/ui';
-import { downloadDocument, getDocument } from '@/lib/api-client/documents';
+import { DocumentPreview } from '@/components/documents/DocumentPreview';
+import { documentFileUrl, downloadDocument, getDocument } from '@/lib/api-client/documents';
 import { useApiResource } from '@/lib/hooks/useApiResource';
 import {
   VISIBILITY_LABEL,
@@ -119,6 +120,11 @@ export function DocumentDetailView({ id }: DocumentDetailViewProps) {
           </div>
         </CardContent>
       </Card>
+
+      <div className="space-y-2">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-navy-500">Aperçu</h2>
+        <DocumentPreview url={documentFileUrl(item.id)} filename={item.originalFilename} />
+      </div>
     </div>
   );
 }

@@ -6,6 +6,7 @@ import type { AuthUser, UserRole, UserStatus } from '@/contracts/auth';
 import type { CatalogResponse } from '@/contracts/catalog';
 import type { AdminUser } from '@/contracts/admin';
 import type { DocumentItem, DocumentStatus, Visibility } from '@/contracts/documents';
+import { PROPOSAL_RETENTION_DAYS } from '@/contracts/proposals';
 
 export interface MockUser extends AuthUser {
   password: string;
@@ -220,6 +221,24 @@ export const documents: DbDocument[] = [
 
 export const proposals: DbDocument[] = [
   {
+    id: 'c0000000-0000-4000-8000-000000000005',
+    title: 'Réseaux informatiques — Fiche de synthèse',
+    description: 'Fiche de synthèse sur l’adressage IP et le routage.',
+    subjectId: '99999999-9999-4999-8999-999999999994',
+    typeId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa7',
+    academicYear: '2025-2026',
+    visibility: 'students',
+    status: 'pending',
+    originalFilename: 'reseaux-fiche-synthese.pdf',
+    mimeType: 'application/pdf',
+    sizeBytes: 520 * 1024,
+    uploadedBy: AWA,
+    downloadCount: 0,
+    createdAt: daysAgoIso(1),
+    publishedAt: null,
+    rejectionReason: null,
+  },
+  {
     id: 'c0000000-0000-4000-8000-000000000001',
     title: 'Algorithmique — Fiche de révision',
     description: 'Fiche synthétique sur les tris et la complexité.',
@@ -233,7 +252,7 @@ export const proposals: DbDocument[] = [
     sizeBytes: 480 * 1024,
     uploadedBy: AWA,
     downloadCount: 0,
-    createdAt: '2026-10-05T10:00:00.000Z',
+    createdAt: daysAgoIso(6),
     publishedAt: null,
     rejectionReason: null,
   },
@@ -251,7 +270,7 @@ export const proposals: DbDocument[] = [
     sizeBytes: 1520 * 1024,
     uploadedBy: AWA,
     downloadCount: 0,
-    createdAt: '2026-10-07T10:00:00.000Z',
+    createdAt: daysAgoIso(4),
     publishedAt: null,
     rejectionReason: null,
   },
@@ -269,7 +288,7 @@ export const proposals: DbDocument[] = [
     sizeBytes: 620 * 1024,
     uploadedBy: AWA,
     downloadCount: 0,
-    createdAt: '2026-09-20T10:00:00.000Z',
+    createdAt: daysAgoIso(21),
     publishedAt: null,
     rejectionReason: 'Document déjà présent dans la bibliothèque (voir « Programmation web — Examen 2025 »).',
   },
@@ -287,7 +306,7 @@ export const proposals: DbDocument[] = [
     sizeBytes: 3080 * 1024,
     uploadedBy: SALIF,
     downloadCount: 0,
-    createdAt: '2026-10-08T10:00:00.000Z',
+    createdAt: daysAgoIso(3),
     publishedAt: null,
     rejectionReason: null,
   },
@@ -344,6 +363,21 @@ export function toDocumentItem(item: DbDocument): DocumentItem {
     createdAt: item.createdAt,
     publishedAt: item.publishedAt,
   };
+}
+
+export function toProposalItem(item: DbDocument) {
+  const created = new Date(item.createdAt).getTime();
+  const expires = created + PROPOSAL_RETENTION_DAYS * 24 * 60 * 60 * 1000;
+  return {
+    ...toDocumentItem(item),
+    rejectionReason: item.rejectionReason,
+    fileExpiresAt: new Date(expires).toISOString(),
+    contentAvailable: Date.now() < expires,
+  };
+}
+
+function daysAgoIso(days: number): string {
+  return new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
 }
 
 export function getUserById(id: string | null): MockUser | undefined {

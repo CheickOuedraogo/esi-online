@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { NewProposalForm } from '@/features/proposals';
+import { ProposalForm } from '@/features/proposals';
 
 export const metadata: Metadata = {
   title: 'Proposer un document',
@@ -14,7 +14,7 @@ export default function NewProposalPage() {
           Votre proposition sera examinée par un administrateur avant publication.
         </p>
       </div>
-      <NewProposalForm />
+      <ProposalForm />
     </div>
   );
 }

@@ -29,7 +29,6 @@ export function LibraryView() {
       listDocuments({
         q: filters.q || undefined,
         levelId: filters.levelId || undefined,
-        programId: filters.programId || undefined,
         subjectId: filters.subjectId || undefined,
         typeId: filters.typeId || undefined,
         year: filters.year || undefined,
@@ -40,7 +39,6 @@ export function LibraryView() {
     [
       filters.q,
       filters.levelId,
-      filters.programId,
       filters.subjectId,
       filters.typeId,
       filters.year,

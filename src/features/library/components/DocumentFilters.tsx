@@ -1,4 +1,5 @@
-// Filtres de la bibliotheque (niveau, filiere, matiere, type, annee, tri).
+// Filtres de la bibliotheque (niveau, matiere, type, annee, tri).
+// ESI ne comporte qu'une seule filiere : aucun filtre « filiere ».
 
 import { Select } from '@/components/ui';
 import type { Sort } from '@/contracts/common';
@@ -7,7 +8,6 @@ import type { CatalogResponse } from '@/contracts/catalog';
 export interface LibraryFilters {
   q: string;
   levelId: string;
-  programId: string;
   subjectId: string;
   typeId: string;
   year: string;
@@ -18,7 +18,6 @@ export interface LibraryFilters {
 export const EMPTY_FILTERS: LibraryFilters = {
   q: '',
   levelId: '',
-  programId: '',
   subjectId: '',
   typeId: '',
   year: '',
@@ -42,17 +41,14 @@ export interface DocumentFiltersProps {
 }
 
 export function DocumentFilters({ catalog, value, onChange, onReset }: DocumentFiltersProps) {
-  const subjects = catalog.subjects.filter((subject) => {
-    if (value.levelId && subject.levelId !== value.levelId) return false;
-    if (value.programId && subject.programId !== value.programId) return false;
-    return true;
-  });
+  const subjects = catalog.subjects.filter(
+    (subject) => !value.levelId || subject.levelId === value.levelId,
+  );
 
-  const hasFilters =
-    Boolean(value.levelId || value.programId || value.subjectId || value.typeId || value.year);
+  const hasFilters = Boolean(value.levelId || value.subjectId || value.typeId || value.year);
 
   return (
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
       <Select
         aria-label="Niveau"
         value={value.levelId}
@@ -62,19 +58,6 @@ export function DocumentFilters({ catalog, value, onChange, onReset }: DocumentF
         {catalog.levels.map((level) => (
           <option key={level.id} value={level.id}>
             {level.name}
-          </option>
-        ))}
-      </Select>
-
-      <Select
-        aria-label="Filière"
-        value={value.programId}
-        onChange={(event) => onChange({ programId: event.target.value, subjectId: '', page: 1 })}
-      >
-        <option value="">Toutes les filières</option>
-        {catalog.programs.map((program) => (
-          <option key={program.id} value={program.id}>
-            {program.name}
           </option>
         ))}
       </Select>

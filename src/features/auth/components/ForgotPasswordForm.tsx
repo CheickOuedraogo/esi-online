@@ -111,7 +111,7 @@ export function ForgotPasswordForm() {
               name="email"
               type="email"
               autoComplete="email"
-              placeholder="vous@exemple.bf"
+              placeholder="prenom.nom@gmail.com"
               hasError={Boolean(emailError)}
             />
           </FormField>

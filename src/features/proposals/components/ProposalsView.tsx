@@ -35,7 +35,7 @@ export function ProposalsView() {
         actions={
           <Link
             href="/proposals/new"
-            className="inline-flex h-10 items-center rounded-lg bg-navy-700 px-4 text-sm font-medium text-cream transition-colors hover:bg-navy-800"
+              className="inline-flex h-10 whitespace-nowrap items-center rounded-lg bg-navy-700 px-4 text-sm font-medium text-cream transition-colors hover:bg-navy-800"
           >
             Proposer un document
           </Link>
@@ -57,7 +57,7 @@ export function ProposalsView() {
           action={
             <Link
               href="/proposals/new"
-              className="inline-flex h-10 items-center rounded-lg bg-navy-700 px-4 text-sm font-medium text-cream transition-colors hover:bg-navy-800"
+            className="inline-flex h-10 whitespace-nowrap items-center rounded-lg bg-navy-700 px-4 text-sm font-medium text-cream transition-colors hover:bg-navy-800"
             >
               Proposer un document
             </Link>
@@ -80,22 +80,43 @@ export function ProposalsView() {
                     {proposal.subjectName} · {proposal.academicYear ?? '—'} · proposé le{' '}
                     {formatDate(proposal.createdAt)}
                   </p>
+                  {!proposal.contentAvailable && proposal.status !== 'approved' && (
+                    <p className="text-xs text-navy-400">
+                      Fichier supprimé après 3 jours (stockage) — modifiez pour en renvoyer un.
+                    </p>
+                  )}
                   {proposal.status === 'rejected' && proposal.rejectionReason && (
                     <p className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">
                       Motif : {proposal.rejectionReason}
                     </p>
                   )}
                 </div>
-                {proposal.status !== 'approved' && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-red-600 hover:bg-red-50"
-                    onClick={() => handleDelete(proposal.id)}
+                <div className="flex shrink-0 flex-wrap items-center gap-2">
+                  <Link
+                    href={`/proposals/${proposal.id}`}
+                    className="inline-flex h-8 items-center rounded-lg border border-navy-200 bg-white px-3 text-sm font-medium text-navy-700 transition-colors hover:bg-navy-50"
                   >
-                    Supprimer
-                  </Button>
-                )}
+                    Visualiser
+                  </Link>
+                  {proposal.status !== 'approved' && (
+                    <>
+                      <Link
+                        href={`/proposals/${proposal.id}/edit`}
+                        className="inline-flex h-8 items-center rounded-lg border border-navy-200 bg-white px-3 text-sm font-medium text-navy-700 transition-colors hover:bg-navy-50"
+                      >
+                        Modifier
+                      </Link>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-red-600 hover:bg-red-50"
+                        onClick={() => handleDelete(proposal.id)}
+                      >
+                        Supprimer
+                      </Button>
+                    </>
+                  )}
+                </div>
               </CardContent>
             </Card>
           ))}

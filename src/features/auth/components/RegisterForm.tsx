@@ -1,7 +1,8 @@
 'use client';
 
-// Formulaire d'inscription : nom, email, mot de passe, filiere et niveau.
-// Charge le catalogue pour la filiere/le niveau puis soumet POST /api/auth/register.
+// Formulaire d'inscription : nom, email, mot de passe et niveau.
+// ESI ne comporte qu'une seule filière : elle est appliquée automatiquement.
+// Charge le catalogue pour le niveau puis soumet POST /api/auth/register.
 
 import { useEffect, useState, useTransition } from 'react';
 import Link from 'next/link';
@@ -11,14 +12,13 @@ import type { CatalogResponse } from '@/contracts/catalog';
 import { ApiClientError } from '@/lib/api-client/client';
 import { register } from '@/lib/api-client/auth';
 import { getCatalog } from '@/lib/api-client/catalog';
-import { Alert, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Select, Spinner } from '@/components/ui';
+import { Alert, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, PasswordInput, Select, Spinner } from '@/components/ui';
 import { FormField } from '@/components/forms/FormField';
 
 type FieldErrors = {
   fullName?: string;
   email?: string;
   password?: string;
-  programId?: string;
   levelId?: string;
 };
 
@@ -41,7 +41,7 @@ export function RegisterForm() {
         setCatalogError(
           error instanceof ApiClientError
             ? error.message
-            : 'Impossible de charger la liste des filières et niveaux.',
+            : 'Impossible de charger la liste des niveaux.',
         );
       });
     return () => {
@@ -58,14 +58,13 @@ export function RegisterForm() {
     const fullName = String(formData.get('fullName') ?? '');
     const email = String(formData.get('email') ?? '');
     const password = String(formData.get('password') ?? '');
-    const programId = String(formData.get('programId') ?? '');
     const levelId = String(formData.get('levelId') ?? '');
 
     const parsed = registerInputSchema.safeParse({
       fullName,
       email,
       password,
-      programId: programId || '00000000-0000-4000-8000-000000000000',
+      programId: catalog?.programs[0]?.id ?? '00000000-0000-4000-8000-000000000000',
       levelId: levelId || '00000000-0000-4000-8000-000000000000',
     });
 
@@ -75,7 +74,6 @@ export function RegisterForm() {
         fullName: fieldErrors.fullName?.[0],
         email: fieldErrors.email?.[0],
         password: fieldErrors.password?.[0],
-        programId: programId ? undefined : 'La filière est requise.',
         levelId: levelId ? undefined : 'Le niveau est requis.',
       });
       return;
@@ -123,7 +121,7 @@ export function RegisterForm() {
               name="email"
               type="email"
               autoComplete="email"
-              placeholder="vous@exemple.bf"
+              placeholder="prenom.nom@gmail.com"
               hasError={Boolean(fieldErrors.email)}
             />
           </FormField>
@@ -135,10 +133,9 @@ export function RegisterForm() {
             error={fieldErrors.password}
             hint="8 caractères minimum."
           >
-            <Input
+            <PasswordInput
               id="password"
               name="password"
-              type="password"
               autoComplete="new-password"
               placeholder="••••••••"
               minLength={8}
@@ -147,37 +144,20 @@ export function RegisterForm() {
           </FormField>
 
           {catalog ? (
-            <div className="grid grid-cols-2 gap-4">
-              <FormField id="programId" label="Filière" required error={fieldErrors.programId}>
-                <Select
-                  id="programId"
-                  name="programId"
-                  placeholder="Choisir une filière"
-                  hasError={Boolean(fieldErrors.programId)}
-                >
-                  {catalog.programs.map((program) => (
-                    <option key={program.id} value={program.id}>
-                      {program.name}
-                    </option>
-                  ))}
-                </Select>
-              </FormField>
-
-              <FormField id="levelId" label="Niveau" required error={fieldErrors.levelId}>
-                <Select
-                  id="levelId"
-                  name="levelId"
-                  placeholder="Choisir un niveau"
-                  hasError={Boolean(fieldErrors.levelId)}
-                >
-                  {catalog.levels.map((level) => (
-                    <option key={level.id} value={level.id}>
-                      {level.name}
-                    </option>
-                  ))}
-                </Select>
-              </FormField>
-            </div>
+            <FormField id="levelId" label="Niveau" required error={fieldErrors.levelId}>
+              <Select
+                id="levelId"
+                name="levelId"
+                placeholder="Choisir un niveau"
+                hasError={Boolean(fieldErrors.levelId)}
+              >
+                {catalog.levels.map((level) => (
+                  <option key={level.id} value={level.id}>
+                    {level.name}
+                  </option>
+                ))}
+              </Select>
+            </FormField>
           ) : (
             <div className="flex items-center gap-2 rounded-lg border border-navy-100 bg-navy-50 px-3 py-2 text-sm text-navy-600">
               {catalogError ? (
@@ -185,7 +165,7 @@ export function RegisterForm() {
               ) : (
                 <>
                   <Spinner className="h-4 w-4" />
-                  <span>Chargement de la filière et du niveau…</span>
+                  <span>Chargement des niveaux…</span>
                 </>
               )}
             </div>

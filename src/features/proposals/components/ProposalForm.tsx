@@ -1,27 +1,28 @@
 'use client';
 
-// Formulaire de proposition d'un document par un etudiant.
+// Formulaire de proposition : creation ou modification (re-soumission).
 
 import { useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { Alert, Button, Card, CardContent, Input, Select, Spinner } from '@/components/ui';
 import { FormField } from '@/components/forms/FormField';
-import { createProposalInputSchema } from '@/contracts/proposals';
+import { createProposalInputSchema, type Proposal } from '@/contracts/proposals';
 import { ApiClientError } from '@/lib/api-client/client';
-import { createProposal } from '@/lib/api-client/proposals';
+import { createProposal, updateProposal } from '@/lib/api-client/proposals';
 import { getCatalog } from '@/lib/api-client/catalog';
 import { useApiResource } from '@/lib/hooks/useApiResource';
 import { ACADEMIC_YEARS } from '@/features/library';
 
 type FieldErrors = Partial<Record<'title' | 'subjectId' | 'typeId' | 'originalFilename', string>>;
 
-export function NewProposalForm() {
+export function ProposalForm({ proposal }: { proposal?: Proposal }) {
   const router = useRouter();
   const catalog = useApiResource(() => getCatalog(), []);
   const [isPending, startTransition] = useTransition();
   const [generalError, setGeneralError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const fileRef = useRef<HTMLInputElement>(null);
+  const editMode = Boolean(proposal);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -36,7 +37,7 @@ export function NewProposalForm() {
       subjectId: String(formData.get('subjectId') ?? ''),
       typeId: String(formData.get('typeId') ?? ''),
       academicYear: String(formData.get('academicYear') ?? '') || undefined,
-      originalFilename: file?.name ?? '',
+      originalFilename: file?.name ?? proposal?.originalFilename ?? '',
     });
 
     if (!parsed.success) {
@@ -51,8 +52,13 @@ export function NewProposalForm() {
     }
 
     try {
-      await createProposal(parsed.data);
-      startTransition(() => router.push('/proposals'));
+      if (proposal) {
+        await updateProposal(proposal.id, parsed.data);
+        startTransition(() => router.push(`/proposals/${proposal.id}`));
+      } else {
+        await createProposal(parsed.data);
+        startTransition(() => router.push('/proposals'));
+      }
     } catch (error) {
       setGeneralError(
         error instanceof ApiClientError ? error.message : 'Une erreur est survenue. Veuillez réessayer.',
@@ -67,7 +73,12 @@ export function NewProposalForm() {
           {generalError && <Alert variant="error">{generalError}</Alert>}
 
           <FormField id="title" label="Titre du document" required error={fieldErrors.title}>
-            <Input id="title" name="title" placeholder="Ex. Algorithmique — Fiche de révision" />
+            <Input
+              id="title"
+              name="title"
+              defaultValue={proposal?.title}
+              placeholder="Ex. Algorithmique — Fiche de révision"
+            />
           </FormField>
 
           <FormField id="description" label="Description">
@@ -75,6 +86,7 @@ export function NewProposalForm() {
               id="description"
               name="description"
               rows={3}
+              defaultValue={proposal?.description ?? ''}
               placeholder="Décrivez brièvement le contenu du document…"
               className="w-full rounded-lg border border-navy-200 bg-white px-3 py-2 text-sm text-navy-900 placeholder:text-navy-300 focus:border-navy-400 focus:outline-none focus:ring-2 focus:ring-navy-200"
             />
@@ -85,7 +97,7 @@ export function NewProposalForm() {
               {catalog.loading ? (
                 <Spinner className="text-navy-400" />
               ) : (
-                <Select id="subjectId" name="subjectId" defaultValue="">
+                <Select id="subjectId" name="subjectId" defaultValue={proposal?.subjectId ?? ''}>
                   <option value="" disabled>
                     Choisir une matière
                   </option>
@@ -99,7 +111,7 @@ export function NewProposalForm() {
             </FormField>
 
             <FormField id="typeId" label="Type de document" required error={fieldErrors.typeId}>
-              <Select id="typeId" name="typeId" defaultValue="">
+              <Select id="typeId" name="typeId" defaultValue={proposal?.typeId ?? ''}>
                 <option value="" disabled>
                   Choisir un type
                 </option>
@@ -113,7 +125,7 @@ export function NewProposalForm() {
           </div>
 
           <FormField id="academicYear" label="Année académique">
-            <Select id="academicYear" name="academicYear" defaultValue="">
+            <Select id="academicYear" name="academicYear" defaultValue={proposal?.academicYear ?? ''}>
               <option value="">Non précisée</option>
               {ACADEMIC_YEARS.map((year) => (
                 <option key={year} value={year}>
@@ -123,7 +135,17 @@ export function NewProposalForm() {
             </Select>
           </FormField>
 
-          <FormField id="file" label="Fichier" required error={fieldErrors.originalFilename} hint="Formats acceptés : PDF, DOC, DOCX.">
+          <FormField
+            id="file"
+            label={editMode ? 'Remplacer le fichier (facultatif)' : 'Fichier'}
+            required={!editMode}
+            error={fieldErrors.originalFilename}
+            hint={
+              editMode
+                ? `Fichier actuel : ${proposal?.originalFilename}. Laissez vide pour le conserver.`
+                : 'Formats acceptés : PDF, DOC, DOCX.'
+            }
+          >
             <input
               id="file"
               name="file"
@@ -139,9 +161,20 @@ export function NewProposalForm() {
               Annuler
             </Button>
             <Button type="submit" loading={isPending}>
-              {isPending ? 'Envoi…' : 'Envoyer la proposition'}
+              {isPending
+                ? 'Envoi…'
+                : editMode
+                  ? 'Enregistrer et resoumettre'
+                  : 'Envoyer la proposition'}
             </Button>
           </div>
+
+          {editMode && (
+            <p className="text-xs text-navy-400">
+              En enregistrant, votre proposition repasse en attente de validation et le délai de
+              conservation du fichier (3 jours) est réinitialisé.
+            </p>
+          )}
         </form>
       </CardContent>
     </Card>

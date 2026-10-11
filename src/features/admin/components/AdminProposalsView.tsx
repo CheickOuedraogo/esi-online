@@ -3,6 +3,7 @@
 // Moderation des propositions etudiantes : approbation ou rejet.
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { Alert, Badge, Button, Card, CardContent, EmptyState, PageHeader, Select, Spinner } from '@/components/ui';
 import type { Proposal } from '@/contracts/proposals';
 import { ApiClientError } from '@/lib/api-client/client';
@@ -117,26 +118,34 @@ export function AdminProposalsView() {
                   )}
                 </div>
 
-                {proposal.status === 'pending' && (
-                  <div className="flex shrink-0 gap-2">
-                    <Button
-                      size="sm"
-                      disabled={busyId === proposal.id}
-                      onClick={() => approve(proposal)}
-                    >
-                      Approuver
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="text-red-600 hover:bg-red-50"
-                      disabled={busyId === proposal.id}
-                      onClick={() => reject(proposal)}
-                    >
-                      Rejeter
-                    </Button>
-                  </div>
-                )}
+                <div className="flex shrink-0 flex-wrap items-center gap-2">
+                  <Link
+                    href={`/admin/proposals/${proposal.id}`}
+                    className="inline-flex h-8 items-center rounded-lg border border-navy-200 bg-white px-3 text-sm font-medium text-navy-700 transition-colors hover:bg-navy-50"
+                  >
+                    Visualiser
+                  </Link>
+                  {proposal.status === 'pending' && (
+                    <>
+                      <Button
+                        size="sm"
+                        disabled={busyId === proposal.id}
+                        onClick={() => approve(proposal)}
+                      >
+                        Approuver
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-red-600 hover:bg-red-50"
+                        disabled={busyId === proposal.id}
+                        onClick={() => reject(proposal)}
+                      >
+                        Rejeter
+                      </Button>
+                    </>
+                  )}
+                </div>
               </CardContent>
             </Card>
           ))}

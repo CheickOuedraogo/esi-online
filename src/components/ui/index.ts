@@ -19,6 +19,7 @@ export {
   CardTitle,
 } from './Card';
 export { Input, type InputProps } from './Input';
+export { PasswordInput, type PasswordInputProps } from './PasswordInput';
 export { Label, type LabelProps } from './Label';
 export { EmptyState, type EmptyStateProps } from './EmptyState';
 export { PageHeader, type PageHeaderProps } from './PageHeader';

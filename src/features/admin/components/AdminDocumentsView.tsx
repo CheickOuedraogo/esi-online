@@ -105,7 +105,7 @@ export function AdminDocumentsView() {
                     <tr key={document.id} className="border-b border-navy-50 last:border-0">
                       <td className="px-4 py-3">
                         <Link
-                          href={`/library/${document.id}`}
+                          href={`/admin/documents/${document.id}`}
                           className="font-medium text-navy-900 hover:text-navy-600"
                         >
                           {document.title}
@@ -126,15 +126,29 @@ export function AdminDocumentsView() {
                         {document.publishedAt ? formatDate(document.publishedAt) : '—'}
                       </td>
                       <td className="px-4 py-3 text-right">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="text-red-600 hover:bg-red-50"
-                          disabled={busyId === document.id}
-                          onClick={() => remove(document.id)}
-                        >
-                          Supprimer
-                        </Button>
+                        <div className="flex flex-wrap items-center justify-end gap-2">
+                          <Link
+                            href={`/admin/documents/${document.id}`}
+                            className="inline-flex h-8 items-center rounded-lg border border-navy-200 bg-white px-3 text-sm font-medium text-navy-700 transition-colors hover:bg-navy-50"
+                          >
+                            Visualiser
+                          </Link>
+                          <Link
+                            href={`/admin/documents/${document.id}/edit`}
+                            className="inline-flex h-8 items-center rounded-lg border border-navy-200 bg-white px-3 text-sm font-medium text-navy-700 transition-colors hover:bg-navy-50"
+                          >
+                            Modifier
+                          </Link>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="text-red-600 hover:bg-red-50"
+                            disabled={busyId === document.id}
+                            onClick={() => remove(document.id)}
+                          >
+                            Supprimer
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   ))}

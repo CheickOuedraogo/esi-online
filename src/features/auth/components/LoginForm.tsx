@@ -9,7 +9,7 @@ import { useRouter } from 'next/navigation';
 import { loginInputSchema } from '@/contracts/auth';
 import { ApiClientError } from '@/lib/api-client/client';
 import { login } from '@/lib/api-client/auth';
-import { Alert, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input } from '@/components/ui';
+import { Alert, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, PasswordInput } from '@/components/ui';
 import { FormField } from '@/components/forms/FormField';
 
 type FieldErrors = { email?: string; password?: string };
@@ -86,16 +86,15 @@ export function LoginForm() {
               name="email"
               type="email"
               autoComplete="email"
-              placeholder="vous@exemple.bf"
+              placeholder="prenom.nom@gmail.com"
               hasError={Boolean(fieldErrors.email)}
             />
           </FormField>
 
           <FormField id="password" label="Mot de passe" required error={fieldErrors.password}>
-            <Input
+            <PasswordInput
               id="password"
               name="password"
-              type="password"
               autoComplete="current-password"
               placeholder="••••••••"
               hasError={Boolean(fieldErrors.password)}

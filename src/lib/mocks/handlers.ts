@@ -11,8 +11,9 @@ import {
   type UserStatus,
 } from '@/contracts/auth';
 import type { CatalogResponse } from '@/contracts/catalog';
-import { reviewProposalInputSchema, updateUserStatusInputSchema } from '@/contracts/admin';
-import { createProposalInputSchema } from '@/contracts/proposals';
+import { reviewProposalInputSchema, updateUserStatusInputSchema, adminContentInputSchema } from '@/contracts/admin';
+import { createProposalInputSchema, updateProposalInputSchema } from '@/contracts/proposals';
+import { buildMockPdf } from './pdf';
 import {
   CATALOG,
   documents,
@@ -24,6 +25,7 @@ import {
   resetRequests,
   toAdminUser,
   toDocumentItem,
+  toProposalItem,
   toPublicUser,
   users,
   writeSession,
@@ -65,8 +67,17 @@ function isResponse(value: unknown): value is Response {
   return value instanceof Response;
 }
 
-function toProposalItem(item: DbDocument) {
-  return { ...toDocumentItem(item), rejectionReason: item.rejectionReason };
+function fileResponse(item: DbDocument, disposition: 'inline' | 'attachment') {
+  const body = buildMockPdf(item.title, [
+    item.originalFilename,
+    item.academicYear ? `Annee academique : ${item.academicYear}` : '',
+  ].filter(Boolean));
+  return new HttpResponse(body, {
+    headers: {
+      'content-type': 'application/pdf',
+      'content-disposition': `${disposition}; filename="${item.originalFilename}"`,
+    },
+  });
 }
 
 function filterDocuments(source: DbDocument[], url: URL) {
@@ -240,13 +251,21 @@ export const handlers = [
     const item = documents.find((candidate) => candidate.id === params.id);
     if (!item) return errorResponse('NOT_FOUND', 'Document introuvable.', 404);
     item.downloadCount += 1;
-    const body = `%PDF-1.4\n% ESI-Library — document de démonstration\n% ${item.title}\n%%EOF`;
-    return new HttpResponse(body, {
-      headers: {
-        'content-type': 'application/pdf',
-        'content-disposition': `attachment; filename="${item.originalFilename}"`,
-      },
-    });
+    return fileResponse(item, 'attachment');
+  }),
+
+  http.get('/api/documents/:id/file', ({ params }) => {
+    const auth = requireValidatedStudent();
+    if (isResponse(auth)) return auth;
+    const item = documents.find((candidate) => candidate.id === params.id);
+    if (!item) return errorResponse('NOT_FOUND', 'Document introuvable.', 404);
+    return fileResponse(item, 'inline');
+  }),
+
+  http.get('/api/public/documents/:id/file', ({ params }) => {
+    const item = documents.find((candidate) => candidate.id === params.id && candidate.visibility === 'public');
+    if (!item) return errorResponse('NOT_FOUND', 'Document introuvable.', 404);
+    return fileResponse(item, 'inline');
   }),
 
   http.get('/api/me/proposals', () => {
@@ -299,6 +318,55 @@ export const handlers = [
     }
     proposals.splice(index, 1);
     return new HttpResponse(null, { status: 204 });
+  }),
+
+  http.get('/api/proposals/:id', ({ params }) => {
+    const auth = requireValidatedStudent();
+    if (isResponse(auth)) return auth;
+    const proposal = proposals.find((item) => item.id === params.id && item.uploadedBy === auth.id);
+    if (!proposal) return errorResponse('NOT_FOUND', 'Proposition introuvable.', 404);
+    return HttpResponse.json(toProposalItem(proposal));
+  }),
+
+  http.get('/api/proposals/:id/file', ({ params }) => {
+    const auth = requireValidatedStudent();
+    if (isResponse(auth)) return auth;
+    const proposal = proposals.find((item) => item.id === params.id && item.uploadedBy === auth.id);
+    if (!proposal) return errorResponse('NOT_FOUND', 'Proposition introuvable.', 404);
+    if (!toProposalItem(proposal).contentAvailable) {
+      return errorResponse(
+        'NOT_FOUND',
+        'Le fichier a été supprimé après 3 jours pour économiser le stockage.',
+        404,
+      );
+    }
+    return fileResponse(proposal, 'inline');
+  }),
+
+  http.patch('/api/proposals/:id', async ({ params, request }) => {
+    const auth = requireValidatedStudent();
+    if (isResponse(auth)) return auth;
+    const proposal = proposals.find((item) => item.id === params.id && item.uploadedBy === auth.id);
+    if (!proposal) return errorResponse('NOT_FOUND', 'Proposition introuvable.', 404);
+    if (proposal.status === 'approved') {
+      return errorResponse('CONFLICT', 'Une proposition approuvée ne peut plus être modifiée.', 409);
+    }
+    const payload = await request.json().catch(() => null);
+    const parsed = updateProposalInputSchema.safeParse(payload);
+    if (!parsed.success) {
+      return errorResponse('VALIDATION_ERROR', 'Entrée invalide.', 400, parsed.error.flatten());
+    }
+    proposal.title = parsed.data.title;
+    proposal.description = parsed.data.description ?? null;
+    proposal.subjectId = parsed.data.subjectId;
+    proposal.typeId = parsed.data.typeId;
+    proposal.academicYear = parsed.data.academicYear ?? null;
+    proposal.originalFilename = parsed.data.originalFilename;
+    proposal.status = 'pending';
+    proposal.rejectionReason = null;
+    proposal.createdAt = new Date().toISOString();
+    proposal.publishedAt = null;
+    return HttpResponse.json(toProposalItem(proposal));
   }),
 
   http.get('/api/admin/stats', () => {
@@ -378,6 +446,33 @@ export const handlers = [
     return HttpResponse.json(filterDocuments(documents, url));
   }),
 
+  http.get('/api/admin/documents/:id', ({ params }) => {
+    const auth = requireAdmin();
+    if (isResponse(auth)) return auth;
+    const item = documents.find((candidate) => candidate.id === params.id);
+    if (!item) return errorResponse('NOT_FOUND', 'Document introuvable.', 404);
+    return HttpResponse.json(toDocumentItem(item));
+  }),
+
+  http.patch('/api/admin/documents/:id', async ({ params, request }) => {
+    const auth = requireAdmin();
+    if (isResponse(auth)) return auth;
+    const item = documents.find((candidate) => candidate.id === params.id);
+    if (!item) return errorResponse('NOT_FOUND', 'Document introuvable.', 404);
+    const payload = await request.json().catch(() => null);
+    const parsed = adminContentInputSchema.safeParse(payload);
+    if (!parsed.success) {
+      return errorResponse('VALIDATION_ERROR', 'Entrée invalide.', 400, parsed.error.flatten());
+    }
+    item.title = parsed.data.title;
+    item.description = parsed.data.description ?? null;
+    item.subjectId = parsed.data.subjectId;
+    item.typeId = parsed.data.typeId;
+    item.academicYear = parsed.data.academicYear ?? null;
+    item.visibility = parsed.data.visibility;
+    return HttpResponse.json(toDocumentItem(item));
+  }),
+
   http.delete('/api/admin/documents/:id', ({ params }) => {
     const auth = requireAdmin();
     if (isResponse(auth)) return auth;
@@ -396,29 +491,73 @@ export const handlers = [
     return HttpResponse.json(items);
   }),
 
+  http.get('/api/admin/proposals/:id', ({ params }) => {
+    const auth = requireAdmin();
+    if (isResponse(auth)) return auth;
+    const proposal = proposals.find((candidate) => candidate.id === params.id);
+    if (!proposal) return errorResponse('NOT_FOUND', 'Proposition introuvable.', 404);
+    return HttpResponse.json(toProposalItem(proposal));
+  }),
+
+  http.get('/api/admin/proposals/:id/file', ({ params }) => {
+    const auth = requireAdmin();
+    if (isResponse(auth)) return auth;
+    const proposal = proposals.find((candidate) => candidate.id === params.id);
+    if (!proposal) return errorResponse('NOT_FOUND', 'Proposition introuvable.', 404);
+    if (!toProposalItem(proposal).contentAvailable) {
+      return errorResponse(
+        'NOT_FOUND',
+        'Le fichier a été supprimé après 3 jours pour économiser le stockage.',
+        404,
+      );
+    }
+    return fileResponse(proposal, 'inline');
+  }),
+
   http.patch('/api/admin/proposals/:id', async ({ params, request }) => {
     const auth = requireAdmin();
     if (isResponse(auth)) return auth;
-    const payload = await request.json().catch(() => null);
-    const parsed = reviewProposalInputSchema.safeParse(payload);
-    if (!parsed.success) {
-      return errorResponse('VALIDATION_ERROR', 'Entrée invalide.', 400, parsed.error.flatten());
-    }
     const index = proposals.findIndex((candidate) => candidate.id === params.id);
     if (index === -1) return errorResponse('NOT_FOUND', 'Proposition introuvable.', 404);
     const proposal = proposals[index];
-    if (parsed.data.action === 'approve') {
-      proposal.status = 'approved';
-      proposal.visibility = parsed.data.visibility ?? 'students';
-      proposal.publishedAt = new Date().toISOString();
-      proposal.rejectionReason = null;
-      documents.unshift(proposal);
-      proposals.splice(index, 1);
-      return HttpResponse.json(toDocumentItem(proposal));
+    const payload = await request.json().catch(() => null);
+
+    const review = reviewProposalInputSchema.safeParse(payload);
+    if (review.success) {
+      if (review.data.action === 'approve') {
+        proposal.status = 'approved';
+        proposal.visibility = review.data.visibility ?? 'students';
+        proposal.publishedAt = new Date().toISOString();
+        proposal.rejectionReason = null;
+        documents.unshift(proposal);
+        proposals.splice(index, 1);
+        return HttpResponse.json(toDocumentItem(proposal));
+      }
+      proposal.status = 'rejected';
+      proposal.rejectionReason = review.data.reason ?? 'Proposition refusée par l’administration.';
+      return HttpResponse.json(toProposalItem(proposal));
     }
-    proposal.status = 'rejected';
-    proposal.rejectionReason = parsed.data.reason ?? 'Proposition refusée par l’administration.';
+
+    const edit = adminContentInputSchema.safeParse(payload);
+    if (!edit.success) {
+      return errorResponse('VALIDATION_ERROR', 'Entrée invalide.', 400, edit.error.flatten());
+    }
+    proposal.title = edit.data.title;
+    proposal.description = edit.data.description ?? null;
+    proposal.subjectId = edit.data.subjectId;
+    proposal.typeId = edit.data.typeId;
+    proposal.academicYear = edit.data.academicYear ?? null;
+    proposal.visibility = edit.data.visibility;
     return HttpResponse.json(toProposalItem(proposal));
+  }),
+
+  http.delete('/api/admin/proposals/:id', ({ params }) => {
+    const auth = requireAdmin();
+    if (isResponse(auth)) return auth;
+    const index = proposals.findIndex((candidate) => candidate.id === params.id);
+    if (index === -1) return errorResponse('NOT_FOUND', 'Proposition introuvable.', 404);
+    proposals.splice(index, 1);
+    return new HttpResponse(null, { status: 204 });
   }),
 
   http.get('/api/admin/reset-requests', () => {

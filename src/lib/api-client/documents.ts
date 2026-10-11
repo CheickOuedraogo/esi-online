@@ -27,3 +27,7 @@ export function getPublicDocument(id: string): Promise<DocumentItem> {
 export function downloadDocument(id: string): Promise<DownloadResult> {
   return apiDownload(`/api/documents/${id}/download`);
 }
+
+export function documentFileUrl(id: string): string {
+  return `/api/documents/${id}/file`;
+}

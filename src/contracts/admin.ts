@@ -35,6 +35,18 @@ export const reviewProposalInputSchema = z.object({
 
 export type ReviewProposalInput = z.infer<typeof reviewProposalInputSchema>;
 
+// Champs modifiables par l'administration sur un document ou une proposition.
+export const adminContentInputSchema = z.object({
+  title: z.string().trim().min(3, 'Le titre doit contenir au moins 3 caractères.').max(200),
+  description: z.string().trim().max(2000).optional(),
+  subjectId: uuidSchema,
+  typeId: uuidSchema,
+  academicYear: z.string().trim().max(20).optional(),
+  visibility: z.enum(['public', 'students']),
+});
+
+export type AdminContentInput = z.infer<typeof adminContentInputSchema>;
+
 export const resetRequestSchema = z.object({
   id: uuidSchema,
   userId: uuidSchema,
