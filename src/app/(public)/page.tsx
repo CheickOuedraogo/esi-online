@@ -1,12 +1,13 @@
 // Landing page publique en une seule page : presentation, fonctionnalites,
 // fonctionnement, contenus et appel a l'action. Un ecran d'accueil (splash)
-// est affiche une fois par heure.
+// est affiche une fois par heure. Les sections glissent vers le centre au scroll.
 
 import Image from 'next/image';
 import Link from 'next/link';
 import { SplashScreen } from '@/components/layout/SplashScreen';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
+import { Reveal } from '@/components/ui';
 
 const PRIMARY_ON_DARK =
   'inline-flex h-12 items-center justify-center rounded-lg bg-cream px-8 text-base font-medium text-navy-900 shadow-sm transition-colors hover:bg-white active:bg-cream/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-navy-900';
@@ -134,28 +135,31 @@ export default function HomePage() {
 
         <section className="px-6 py-16 sm:py-20">
           <div className="mx-auto max-w-5xl">
-            <SectionLabel>Présentation</SectionLabel>
-            <h2 className="mt-3 max-w-2xl text-2xl font-semibold tracking-tight text-navy-900 sm:text-3xl">
-              Une bibliothèque numérique pensée pour la réussite des étudiants
-            </h2>
-            <p className="mt-4 max-w-2xl text-sm text-navy-600 sm:text-base">
-              ESI-Library centralise les cours, travaux dirigés et pratiques, examens, corrigés,
-              mémoires et annales de l&apos;école. Plus besoin de chercher sur des groupes ou des
-              supports épars&nbsp;: tout est classé, modéré et accessible depuis votre espace
-              étudiant.
-            </p>
+            <Reveal from="left">
+              <SectionLabel>Présentation</SectionLabel>
+              <h2 className="mt-3 max-w-2xl text-2xl font-semibold tracking-tight text-navy-900 sm:text-3xl">
+                Une bibliothèque numérique pensée pour la réussite des étudiants
+              </h2>
+              <p className="mt-4 max-w-2xl text-sm text-navy-600 sm:text-base">
+                ESI-Library centralise les cours, travaux dirigés et pratiques, examens, corrigés,
+                mémoires et annales de l&apos;école. Plus besoin de chercher sur des groupes ou des
+                supports épars&nbsp;: tout est classé, modéré et accessible depuis votre espace
+                étudiant.
+              </p>
+            </Reveal>
             <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-              {FEATURES.map((feature) => (
-                <div
-                  key={feature.title}
-                  className="rounded-2xl border border-navy-100 bg-white p-5 shadow-sm shadow-navy-900/5"
-                >
-                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-navy-50 text-navy-700">
-                    {feature.icon}
+              {FEATURES.map((feature, index) => (
+                <Reveal key={feature.title} from={index % 2 === 0 ? 'left' : 'right'} delay={index * 90}>
+                  <div className="h-full rounded-2xl border border-navy-100 bg-white p-5 shadow-sm shadow-navy-900/5">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-navy-50 text-navy-700">
+                      {feature.icon}
+                    </div>
+                    <h3 className="mt-4 text-base font-semibold text-navy-900">{feature.title}</h3>
+                    <p className="mt-1.5 text-sm leading-relaxed text-navy-500">
+                      {feature.description}
+                    </p>
                   </div>
-                  <h3 className="mt-4 text-base font-semibold text-navy-900">{feature.title}</h3>
-                  <p className="mt-1.5 text-sm leading-relaxed text-navy-500">{feature.description}</p>
-                </div>
+                </Reveal>
               ))}
             </div>
           </div>
@@ -163,19 +167,23 @@ export default function HomePage() {
 
         <section className="border-y border-navy-100 bg-white px-6 py-16 sm:py-20">
           <div className="mx-auto max-w-5xl">
-            <SectionLabel>Comment ça marche</SectionLabel>
-            <h2 className="mt-3 text-2xl font-semibold tracking-tight text-navy-900 sm:text-3xl">
-              Trois étapes pour commencer
-            </h2>
+            <Reveal from="left">
+              <SectionLabel>Comment ça marche</SectionLabel>
+              <h2 className="mt-3 text-2xl font-semibold tracking-tight text-navy-900 sm:text-3xl">
+                Trois étapes pour commencer
+              </h2>
+            </Reveal>
             <ol className="mt-10 grid gap-8 sm:grid-cols-3">
               {STEPS.map((step, index) => (
-                <li key={step.title} className="relative">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-full border border-gold-300 bg-gold-50 text-sm font-bold text-gold-700">
-                    {index + 1}
-                  </div>
-                  <h3 className="mt-4 text-base font-semibold text-navy-900">{step.title}</h3>
-                  <p className="mt-1.5 text-sm text-navy-600">{step.description}</p>
-                </li>
+                <Reveal key={step.title} from={index === 0 ? 'left' : index === 2 ? 'right' : 'up'} delay={index * 110}>
+                  <li className="relative">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-full border border-gold-300 bg-gold-50 text-sm font-bold text-gold-700">
+                      {index + 1}
+                    </div>
+                    <h3 className="mt-4 text-base font-semibold text-navy-900">{step.title}</h3>
+                    <p className="mt-1.5 text-sm text-navy-600">{step.description}</p>
+                  </li>
+                </Reveal>
               ))}
             </ol>
           </div>
@@ -183,75 +191,85 @@ export default function HomePage() {
 
         <section className="px-6 py-16 sm:py-20">
           <div className="mx-auto max-w-5xl">
-            <SectionLabel>Les contenus</SectionLabel>
-            <h2 className="mt-3 text-2xl font-semibold tracking-tight text-navy-900 sm:text-3xl">
-              Cours, travaux pratiques, annales et plus
-            </h2>
-            <p className="mt-4 max-w-2xl text-sm text-navy-600 sm:text-base">
-              La bibliothèque couvre toutes les filières et tous les niveaux de l&apos;ESI, avec
-              plusieurs types de documents.
-            </p>
-            <div className="mt-8 flex flex-wrap gap-2.5">
-              {DOCUMENT_TYPES.map((type) => (
-                <span
-                  key={type}
-                  className="rounded-full border border-navy-200 bg-white px-4 py-1.5 text-sm font-medium text-navy-700"
-                >
-                  {type}
-                </span>
-              ))}
-            </div>
+            <Reveal from="left">
+              <SectionLabel>Les contenus</SectionLabel>
+              <h2 className="mt-3 text-2xl font-semibold tracking-tight text-navy-900 sm:text-3xl">
+                Cours, travaux pratiques, annales et plus
+              </h2>
+              <p className="mt-4 max-w-2xl text-sm text-navy-600 sm:text-base">
+                La bibliothèque couvre toutes les filières et tous les niveaux de l&apos;ESI, avec
+                plusieurs types de documents.
+              </p>
+            </Reveal>
+            <Reveal from="up">
+              <div className="mt-8 flex flex-wrap gap-2.5">
+                {DOCUMENT_TYPES.map((type) => (
+                  <span
+                    key={type}
+                    className="rounded-full border border-navy-200 bg-white px-4 py-1.5 text-sm font-medium text-navy-700"
+                  >
+                    {type}
+                  </span>
+                ))}
+              </div>
+            </Reveal>
             <div className="mt-8 grid gap-5 sm:grid-cols-2">
-              <div className="rounded-2xl border border-navy-100 bg-white p-6">
-                <h3 className="text-sm font-semibold uppercase tracking-wide text-navy-500">
-                  Filières
-                </h3>
-                <ul className="mt-3 space-y-2 text-sm text-navy-700">
-                  {PROGRAMS.map((program) => (
-                    <li key={program} className="flex items-center gap-2">
-                      <span className="h-1.5 w-1.5 rounded-full bg-gold-400" />
-                      {program}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div className="rounded-2xl border border-navy-100 bg-white p-6">
-                <h3 className="text-sm font-semibold uppercase tracking-wide text-navy-500">
-                  Niveaux
-                </h3>
-                <ul className="mt-3 flex flex-wrap gap-2">
-                  {LEVELS.map((level) => (
-                    <li
-                      key={level}
-                      className="rounded-lg border border-navy-100 bg-navy-50 px-3 py-1.5 text-sm font-medium text-navy-700"
-                    >
-                      {level}
-                    </li>
-                  ))}
-                </ul>
-              </div>
+              <Reveal from="left">
+                <div className="rounded-2xl border border-navy-100 bg-white p-6">
+                  <h3 className="text-sm font-semibold uppercase tracking-wide text-navy-500">
+                    Filières
+                  </h3>
+                  <ul className="mt-3 space-y-2 text-sm text-navy-700">
+                    {PROGRAMS.map((program) => (
+                      <li key={program} className="flex items-center gap-2">
+                        <span className="h-1.5 w-1.5 rounded-full bg-gold-400" />
+                        {program}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </Reveal>
+              <Reveal from="right">
+                <div className="rounded-2xl border border-navy-100 bg-white p-6">
+                  <h3 className="text-sm font-semibold uppercase tracking-wide text-navy-500">
+                    Niveaux
+                  </h3>
+                  <ul className="mt-3 flex flex-wrap gap-2">
+                    {LEVELS.map((level) => (
+                      <li
+                        key={level}
+                        className="rounded-lg border border-navy-100 bg-navy-50 px-3 py-1.5 text-sm font-medium text-navy-700"
+                      >
+                        {level}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </Reveal>
             </div>
           </div>
         </section>
 
         <section className="px-6 py-16 sm:py-20">
-          <div className="mx-auto max-w-3xl rounded-3xl bg-gradient-to-b from-navy-800 to-navy-950 px-6 py-14 text-center text-cream shadow-lg shadow-navy-900/20">
-            <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-              Prêt à retrouver vos premiers documents&nbsp;?
-            </h2>
-            <p className="mx-auto mt-3 max-w-md text-sm text-cream/75 sm:text-base">
-              Ouvrez un compte gratuit en une minute et accédez à toute la bibliothèque dès la
-              validation de votre profil.
-            </p>
-            <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-              <Link href="/register" className={PRIMARY_ON_DARK}>
-                Créer mon compte
-              </Link>
-              <Link href="/login" className={SECONDARY_ON_DARK}>
-                J&apos;ai déjà un compte
-              </Link>
+          <Reveal from="up" className="mx-auto max-w-3xl">
+            <div className="rounded-3xl bg-gradient-to-b from-navy-800 to-navy-950 px-6 py-14 text-center text-cream shadow-lg shadow-navy-900/20">
+              <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+                Prêt à retrouver vos premiers documents&nbsp;?
+              </h2>
+              <p className="mx-auto mt-3 max-w-md text-sm text-cream/75 sm:text-base">
+                Ouvrez un compte gratuit en une minute et accédez à toute la bibliothèque dès la
+                validation de votre profil.
+              </p>
+              <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+                <Link href="/register" className={PRIMARY_ON_DARK}>
+                  Créer mon compte
+                </Link>
+                <Link href="/login" className={SECONDARY_ON_DARK}>
+                  J&apos;ai déjà un compte
+                </Link>
+              </div>
             </div>
-          </div>
+          </Reveal>
         </section>
       </main>
       <Footer />
