@@ -1,2 +1,15 @@
 # Caddyfile : terminaison HTTPS (certificats automatiques) et reverse proxy
 # du domaine public vers l'application Next.js (service app, port 3000).
+
+:80 {
+    reverse_proxy app:3000
+
+    encode gzip zstd
+
+    header {
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        Permissions-Policy "camera=(), microphone=(), geolocation=()"
+    }
+}

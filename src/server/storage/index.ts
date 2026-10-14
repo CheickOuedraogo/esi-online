@@ -1,3 +1,10 @@
-// Fabrique du stockage : selectionne l'implementation selon la configuration.
+// Fabrique et instance singleton du stockage de fichiers.
 
-export {};
+import { StorageProvider } from "./storage.interface";
+import { LocalStorageProvider } from "./local.storage";
+
+export * from "./storage.interface";
+export * from "./local.storage";
+export * from "./file-validation";
+
+export const storage: StorageProvider = new LocalStorageProvider();

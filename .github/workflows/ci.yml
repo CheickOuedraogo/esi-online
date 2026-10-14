@@ -1,2 +1,57 @@
-# Workflow CI (GitHub Actions) : installe les dependances puis execute
-# le lint, le typecheck TypeScript et les tests (tests/front et tests/back).
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: esi_library
+          POSTGRES_USER: esi
+          POSTGRES_PASSWORD: esi
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgres://esi:esi@localhost:5432/esi_library
+      SESSION_SECRET: test_session_secret_for_ci_pipeline_32_chars_min
+      UPLOAD_DIR: ./uploads
+      MAX_UPLOAD_MB: 50
+      APP_URL: http://localhost:3000
+      ADMIN_EMAIL: admin@esi-library.dz
+      ADMIN_PASSWORD: Admin123!@#
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: TypeScript type check
+        run: npx tsc --noEmit
+
+      - name: Run Backend Tests
+        run: npm test

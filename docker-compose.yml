@@ -1,4 +1,55 @@
-# docker-compose.yml : orchestration des services suivants :
-# - app={Next.js}   : l'application fullstack (port 3000)
-# - postgres        : la base de donnees relationnelle
-# - caddy           : le reverse proxy HTTPS place devant l'app
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: esi_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: esi_library
+      POSTGRES_USER: esi
+      POSTGRES_PASSWORD: esi
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U esi -d esi_library"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: esi_app
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=postgres://esi:esi@postgres:5432/esi_library
+    volumes:
+      - ./uploads:/app/uploads
+    ports:
+      - "3000:3000"
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: esi_caddy
+    restart: unless-stopped
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  postgres_data:
+  caddy_data:
+  caddy_config:
