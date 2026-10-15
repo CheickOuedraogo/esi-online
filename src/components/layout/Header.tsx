@@ -46,10 +46,11 @@ export function Header() {
           type="button"
           onClick={() => setOpen((current) => !current)}
           aria-expanded={open}
+          aria-controls="public-menu"
           aria-label={open ? 'Fermer le menu' : 'Ouvrir le menu'}
           className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-navy-700 transition-colors hover:bg-navy-50 sm:hidden"
         >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-6 w-6">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true" className="h-6 w-6">
             {open ? (
               <path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" />
             ) : (
@@ -60,7 +61,7 @@ export function Header() {
       </div>
 
       {open && (
-        <div className="absolute inset-x-0 top-full border-t border-navy-100 bg-cream shadow-lg sm:hidden">
+        <div id="public-menu" className="absolute inset-x-0 top-full border-t border-navy-100 bg-cream shadow-lg sm:hidden">
           <nav className="mx-auto flex max-w-5xl flex-col gap-1 px-4 py-3">
           <Link
             href="/documents"

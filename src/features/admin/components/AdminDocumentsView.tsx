@@ -79,11 +79,12 @@ export function AdminDocumentsView() {
           <Card>
             <div className="overflow-x-auto">
               <table className="w-full min-w-[480px] text-sm">
+                <caption className="sr-only">Liste des documents</caption>
                 <thead>
-                  <tr className="border-b border-navy-100 text-left text-xs uppercase tracking-wide text-navy-400">
-                    <th className="px-4 py-3 font-semibold">Titre</th>
-                    <th className="px-4 py-3 font-semibold">Type</th>
-                    <th className="px-4 py-3 text-right font-semibold">Actions</th>
+                  <tr className="border-b border-navy-100 text-left text-xs uppercase tracking-wide text-navy-500">
+                    <th scope="col" className="px-4 py-3 font-semibold">Titre</th>
+                    <th scope="col" className="px-4 py-3 font-semibold">Type</th>
+                    <th scope="col" className="px-4 py-3 text-right font-semibold">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -151,27 +152,27 @@ export function AdminDocumentsView() {
 
             <dl className="grid gap-x-6 gap-y-3 border-t border-navy-100 pt-4 sm:grid-cols-2">
               <div>
-                <dt className="text-xs uppercase tracking-wide text-navy-400">Matière</dt>
+                <dt className="text-xs uppercase tracking-wide text-navy-500">Matière</dt>
                 <dd className="text-sm text-navy-900">{selected.subjectName}</dd>
               </div>
               <div>
-                <dt className="text-xs uppercase tracking-wide text-navy-400">Niveau</dt>
+                <dt className="text-xs uppercase tracking-wide text-navy-500">Niveau</dt>
                 <dd className="text-sm text-navy-900">{selected.levelName ?? '—'}</dd>
               </div>
               <div>
-                <dt className="text-xs uppercase tracking-wide text-navy-400">Année</dt>
+                <dt className="text-xs uppercase tracking-wide text-navy-500">Année</dt>
                 <dd className="text-sm text-navy-900">{formatAcademicYear(selected.academicYear)}</dd>
               </div>
               <div>
-                <dt className="text-xs uppercase tracking-wide text-navy-400">Taille</dt>
+                <dt className="text-xs uppercase tracking-wide text-navy-500">Taille</dt>
                 <dd className="text-sm text-navy-900">{formatFileSize(selected.sizeBytes)}</dd>
               </div>
               <div>
-                <dt className="text-xs uppercase tracking-wide text-navy-400">Téléchargements</dt>
+                <dt className="text-xs uppercase tracking-wide text-navy-500">Téléchargements</dt>
                 <dd className="text-sm text-navy-900">{selected.downloadCount}</dd>
               </div>
               <div>
-                <dt className="text-xs uppercase tracking-wide text-navy-400">Publié le</dt>
+                <dt className="text-xs uppercase tracking-wide text-navy-500">Publié le</dt>
                 <dd className="text-sm text-navy-900">
                   {selected.publishedAt ? formatDate(selected.publishedAt) : '—'}
                 </dd>

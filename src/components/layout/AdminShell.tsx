@@ -8,8 +8,10 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Button, Spinner, buttonClassName } from '@/components/ui';
+import { SkipLink } from '@/components/layout/SkipLink';
 import { logout } from '@/lib/api-client/auth';
 import { useRequireRole } from '@/lib/hooks/useSession';
+import { useMediaQuery } from '@/lib/hooks/useMediaQuery';
 import { cn } from '@/lib/utils';
 
 const NAV = [
@@ -26,7 +28,9 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const isDesktop = useMediaQuery('(min-width: 1024px)');
   const authed = ready && user;
+  const sidebarHidden = !isDesktop && !open;
 
   async function handleLogout() {
     await logout().catch(() => undefined);
@@ -35,7 +39,11 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-dvh bg-cream">
+      <SkipLink />
       <aside
+        id="admin-sidebar"
+        aria-hidden={sidebarHidden || undefined}
+        inert={sidebarHidden}
         className={cn(
           'fixed inset-y-0 left-0 z-40 flex w-64 flex-col bg-navy-900 text-cream transition-transform lg:translate-x-0',
           open ? 'translate-x-0' : '-translate-x-full',
@@ -66,6 +74,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                   key={item.href}
                   href={item.href}
                   onClick={() => setOpen(false)}
+                  aria-current={active ? 'page' : undefined}
                   className={cn(
                     'rounded-lg border-l-2 px-3 py-2 text-sm font-medium transition-colors',
                     active
@@ -99,9 +108,11 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                   type="button"
                   onClick={() => setOpen(true)}
                   aria-label="Ouvrir le menu"
+                  aria-expanded={open}
+                  aria-controls="admin-sidebar"
                   className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-navy-700 transition-colors hover:bg-navy-50 lg:hidden"
                 >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-6 w-6">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true" className="h-6 w-6">
                     <path d="M4 7h16M4 12h16M4 17h16" strokeLinecap="round" />
                   </svg>
                 </button>
@@ -134,7 +145,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           </div>
         </header>
 
-        <main className="p-4 sm:p-6">
+        <main id="contenu" className="p-4 sm:p-6">
           {authed ? (
             children
           ) : (

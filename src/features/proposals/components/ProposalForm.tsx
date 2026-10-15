@@ -4,7 +4,7 @@
 
 import { useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { Alert, Button, Card, CardContent, Input, Select, Spinner } from '@/components/ui';
+import { Alert, Button, Card, CardContent, Input, Select, Spinner, Textarea, useToast } from '@/components/ui';
 import { FormField } from '@/components/forms/FormField';
 import { createProposalInputSchema, type Proposal } from '@/contracts/proposals';
 import { ApiClientError } from '@/lib/api-client/client';
@@ -17,6 +17,7 @@ type FieldErrors = Partial<Record<'title' | 'subjectId' | 'typeId' | 'file', str
 
 export function ProposalForm({ proposal }: { proposal?: Proposal }) {
   const router = useRouter();
+  const { toast } = useToast();
   const catalog = useApiResource(() => getCatalog(), []);
   const [isPending, startTransition] = useTransition();
   const [generalError, setGeneralError] = useState<string | null>(null);
@@ -59,9 +60,11 @@ export function ProposalForm({ proposal }: { proposal?: Proposal }) {
     try {
       if (proposal) {
         await updateProposal(proposal.id, parsed.data, file);
+        toast('Proposition mise à jour.');
         startTransition(() => router.push(`/proposals/${proposal.id}`));
       } else {
         await createProposal(parsed.data, file as File);
+        toast('Proposition envoyée. Elle sera examinée par un administrateur.');
         startTransition(() => router.push('/proposals'));
       }
     } catch (error) {
@@ -87,13 +90,12 @@ export function ProposalForm({ proposal }: { proposal?: Proposal }) {
           </FormField>
 
           <FormField id="description" label="Description">
-            <textarea
+            <Textarea
               id="description"
               name="description"
               rows={3}
               defaultValue={proposal?.description ?? ''}
               placeholder="Décrivez brièvement le contenu du document…"
-              className="w-full rounded-lg border border-navy-200 bg-white px-3 py-2 text-sm text-navy-900 placeholder:text-navy-300 focus:border-navy-400 focus:outline-none focus:ring-2 focus:ring-navy-200"
             />
           </FormField>
 

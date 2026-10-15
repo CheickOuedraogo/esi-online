@@ -25,13 +25,15 @@ type FieldErrors = {
 export function RegisterForm() {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [submitting, setSubmitting] = useState(false);
   const [catalog, setCatalog] = useState<CatalogResponse | null>(null);
   const [catalogError, setCatalogError] = useState<string | null>(null);
   const [generalError, setGeneralError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
-  useEffect(() => {
+  function loadCatalog() {
     let active = true;
+    setCatalogError(null);
     getCatalog()
       .then((data) => {
         if (active) setCatalog(data);
@@ -47,7 +49,9 @@ export function RegisterForm() {
     return () => {
       active = false;
     };
-  }, []);
+  }
+
+  useEffect(loadCatalog, []);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -80,6 +84,7 @@ export function RegisterForm() {
     }
 
     try {
+      setSubmitting(true);
       await register(parsed.data);
       startTransition(() => router.replace('/pending'));
     } catch (error) {
@@ -92,13 +97,15 @@ export function RegisterForm() {
       } else {
         setGeneralError('Une erreur est survenue. Veuillez réessayer.');
       }
+    } finally {
+      setSubmitting(false);
     }
   }
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Inscription</CardTitle>
+        <CardTitle as="h1">Inscription</CardTitle>
         <CardDescription>Créez votre compte étudiant, puis attendez sa validation par un administrateur.</CardDescription>
       </CardHeader>
       <CardContent>
@@ -159,9 +166,17 @@ export function RegisterForm() {
               </Select>
             </FormField>
           ) : (
-            <div className="flex items-center gap-2 rounded-lg border border-navy-100 bg-navy-50 px-3 py-2 text-sm text-navy-600">
+            <div
+              role={catalogError ? 'alert' : 'status'}
+              className="flex items-center gap-2 rounded-lg border border-navy-100 bg-navy-50 px-3 py-2 text-sm text-navy-600"
+            >
               {catalogError ? (
-                <span>{catalogError}</span>
+                <>
+                  <span className="flex-1">{catalogError}</span>
+                  <Button type="button" variant="secondary" size="sm" onClick={loadCatalog}>
+                    Réessayer
+                  </Button>
+                </>
               ) : (
                 <>
                   <Spinner className="h-4 w-4" />
@@ -171,8 +186,8 @@ export function RegisterForm() {
             </div>
           )}
 
-          <Button type="submit" fullWidth loading={isPending} disabled={!catalog && !catalogError}>
-            {isPending ? 'Création du compte…' : "S'inscrire"}
+          <Button type="submit" fullWidth loading={submitting || isPending} disabled={!catalog}>
+            {submitting || isPending ? 'Création du compte…' : "S'inscrire"}
           </Button>
         </form>
       </CardContent>

@@ -10,10 +10,12 @@ import {
   Card,
   CardContent,
   Input,
+  Label,
   Modal,
   PageHeader,
   Select,
   Spinner,
+  Textarea,
 } from '@/components/ui';
 import type { AdminUser } from '@/contracts/admin';
 import type { UserStatus } from '@/contracts/auth';
@@ -46,20 +48,40 @@ export function AdminUsersView() {
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [selected, setSelected] = useState<AdminUser | null>(null);
+  const [decision, setDecision] = useState<{ user: AdminUser; next: UserStatus } | null>(null);
+  const [reason, setReason] = useState('');
 
-  async function run(user: AdminUser, next: UserStatus) {
+  function askDecision(user: AdminUser, next: UserStatus) {
+    setReason('');
+    setSelected(null);
+    setDecision({ user, next });
+  }
+
+  async function run(user: AdminUser, next: UserStatus, reasonText?: string) {
     setBusyId(user.id);
     setNotice(null);
     setError(null);
     try {
-      await updateUserStatus(user.id, { status: next });
+      await updateUserStatus(user.id, { status: next, reason: reasonText?.trim() || undefined });
       setSelected((current) => (current && current.id === user.id ? { ...current, status: next } : current));
       users.reload();
       setNotice(`Statut de ${user.fullName} mis à jour : ${USER_STATUS_LABEL[next]}.`);
+      return true;
     } catch (err) {
       setError(err instanceof ApiClientError ? err.message : 'L’action a échoué.');
+      return false;
     } finally {
       setBusyId(null);
+    }
+  }
+
+  async function confirmDecision() {
+    if (!decision) return;
+    const { user, next } = decision;
+    const ok = await run(user, next, reason);
+    if (ok) {
+      setDecision(null);
+      setReason('');
     }
   }
 
@@ -103,12 +125,13 @@ export function AdminUsersView() {
         <Card>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[560px] text-sm">
+              <caption className="sr-only">Liste des utilisateurs</caption>
               <thead>
-                <tr className="border-b border-navy-100 text-left text-xs uppercase tracking-wide text-navy-400">
-                  <th className="px-4 py-3 font-semibold">Nom</th>
-                  <th className="px-4 py-3 font-semibold">Prénom</th>
-                  <th className="px-4 py-3 font-semibold">Statut</th>
-                  <th className="px-4 py-3 text-right font-semibold">Action</th>
+                <tr className="border-b border-navy-100 text-left text-xs uppercase tracking-wide text-navy-500">
+                  <th scope="col" className="px-4 py-3 font-semibold">Nom</th>
+                  <th scope="col" className="px-4 py-3 font-semibold">Prénom</th>
+                  <th scope="col" className="px-4 py-3 font-semibold">Statut</th>
+                  <th scope="col" className="px-4 py-3 text-right font-semibold">Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -171,26 +194,28 @@ export function AdminUsersView() {
 
             <dl className="grid gap-x-6 gap-y-3 sm:grid-cols-2">
               <div>
-                <dt className="text-xs uppercase tracking-wide text-navy-400">Nom</dt>
+                <dt className="text-xs uppercase tracking-wide text-navy-500">Nom</dt>
                 <dd className="text-sm text-navy-900">{splitName(selected.fullName).lastName}</dd>
               </div>
               <div>
-                <dt className="text-xs uppercase tracking-wide text-navy-400">Prénom</dt>
+                <dt className="text-xs uppercase tracking-wide text-navy-500">Prénom</dt>
                 <dd className="text-sm text-navy-900">{splitName(selected.fullName).firstName || '—'}</dd>
               </div>
               <div>
-                <dt className="text-xs uppercase tracking-wide text-navy-400">E-mail</dt>
+                <dt className="text-xs uppercase tracking-wide text-navy-500">E-mail</dt>
                 <dd className="break-all text-sm text-navy-900">{selected.email}</dd>
               </div>
               <div>
-                <dt className="text-xs uppercase tracking-wide text-navy-400">Niveau</dt>
+                <dt className="text-xs uppercase tracking-wide text-navy-500">Niveau</dt>
                 <dd className="text-sm text-navy-900">{selected.levelName ?? '—'}</dd>
               </div>
               <div>
-                <dt className="text-xs uppercase tracking-wide text-navy-400">Inscrit le</dt>
+                <dt className="text-xs uppercase tracking-wide text-navy-500">Inscrit le</dt>
                 <dd className="text-sm text-navy-900">{formatDate(selected.createdAt)}</dd>
               </div>
             </dl>
+
+            {error && <Alert variant="error">{error}</Alert>}
 
             <div className="flex flex-wrap justify-end gap-2 border-t border-navy-100 pt-4">
               {selected.status === 'validated' ? (
@@ -199,7 +224,7 @@ export function AdminUsersView() {
                   variant="ghost"
                   className="text-red-600 hover:bg-red-50"
                   disabled={busyId === selected.id}
-                  onClick={() => run(selected, 'suspended')}
+                  onClick={() => askDecision(selected, 'suspended')}
                 >
                   Désactiver le compte
                 </Button>
@@ -210,7 +235,7 @@ export function AdminUsersView() {
                       size="sm"
                       variant="ghost"
                       disabled={busyId === selected.id}
-                      onClick={() => run(selected, 'rejected')}
+                      onClick={() => askDecision(selected, 'rejected')}
                     >
                       Rejeter
                     </Button>
@@ -220,6 +245,67 @@ export function AdminUsersView() {
                   </Button>
                 </>
               )}
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      <Modal
+        open={decision !== null}
+        onClose={() => setDecision(null)}
+        title={decision?.next === 'rejected' ? 'Rejeter l’inscription' : 'Désactiver le compte'}
+      >
+        {decision && (
+          <div className="space-y-4 px-6 py-5">
+            <p className="text-sm text-navy-700">
+              {decision.next === 'rejected' ? (
+                <>
+                  Vous êtes sur le point de rejeter l’inscription de{' '}
+                  <strong className="text-navy-900">{decision.user.fullName}</strong>. Cette personne
+                  ne pourra pas se connecter.
+                </>
+              ) : (
+                <>
+                  Vous êtes sur le point de désactiver le compte de{' '}
+                  <strong className="text-navy-900">{decision.user.fullName}</strong>. Il ne pourra
+                  plus se connecter tant qu’il n’aura pas été réactivé.
+                </>
+              )}
+            </p>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="decision-reason">
+                Motif{decision.next === 'rejected' ? '' : ' (facultatif)'}
+              </Label>
+              <Textarea
+                id="decision-reason"
+                value={reason}
+                onChange={(event) => setReason(event.target.value)}
+                rows={3}
+                maxLength={500}
+                required={decision.next === 'rejected'}
+                placeholder={
+                  decision.next === 'rejected'
+                    ? 'Expliquez brièvement la raison du rejet…'
+                    : 'Ajoutez un motif si nécessaire…'
+                }
+              />
+            </div>
+
+            {error && <Alert variant="error">{error}</Alert>}
+
+            <div className="flex justify-end gap-2 border-t border-navy-100 pt-4">
+              <Button variant="secondary" onClick={() => setDecision(null)} disabled={busyId !== null}>
+                Annuler
+              </Button>
+              <Button
+                variant="danger"
+                onClick={confirmDecision}
+                loading={busyId === decision.user.id}
+                disabled={decision.next === 'rejected' && reason.trim().length === 0}
+              >
+                {decision.next === 'rejected' ? 'Rejeter' : 'Désactiver'}
+              </Button>
             </div>
           </div>
         )}

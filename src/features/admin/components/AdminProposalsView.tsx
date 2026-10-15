@@ -12,10 +12,12 @@ import {
   EmptyState,
   EyeIcon,
   IconButton,
+  Label,
   Modal,
   PageHeader,
   Select,
   Spinner,
+  Textarea,
 } from '@/components/ui';
 import type { Proposal } from '@/contracts/proposals';
 import { ApiClientError } from '@/lib/api-client/client';
@@ -27,6 +29,7 @@ import {
   DOCUMENT_STATUS_VARIANT,
   VISIBILITY_LABEL,
   formatAcademicYear,
+  formatCount,
   formatDate,
   formatFileSize,
 } from '@/lib/labels';
@@ -39,11 +42,19 @@ export function AdminProposalsView() {
   const [error, setError] = useState<string | null>(null);
   const [visibility, setVisibility] = useState<'students' | 'public'>('students');
   const [selected, setSelected] = useState<Proposal | null>(null);
+  const [rejecting, setRejecting] = useState<Proposal | null>(null);
+  const [reason, setReason] = useState('');
 
   function open(proposal: Proposal) {
     setSelected(proposal);
     setVisibility('students');
     setError(null);
+  }
+
+  function askReject(proposal: Proposal) {
+    setReason('');
+    setSelected(null);
+    setRejecting(proposal);
   }
 
   async function approve(proposal: Proposal) {
@@ -62,16 +73,18 @@ export function AdminProposalsView() {
     }
   }
 
-  async function reject(proposal: Proposal) {
-    const reason = window.prompt('Motif du rejet (facultatif) :') ?? undefined;
+  async function confirmReject() {
+    if (!rejecting) return;
+    const proposal = rejecting;
     setBusyId(proposal.id);
     setNotice(null);
     setError(null);
     try {
-      await reviewProposal(proposal.id, { action: 'reject', reason: reason?.trim() || undefined });
+      await reviewProposal(proposal.id, { action: 'reject', reason: reason.trim() || undefined });
       proposals.reload();
       setNotice(`« ${proposal.title} » a été rejetée.`);
-      setSelected(null);
+      setRejecting(null);
+      setReason('');
     } catch (err) {
       setError(err instanceof ApiClientError ? err.message : 'Le rejet a échoué.');
     } finally {
@@ -89,9 +102,7 @@ export function AdminProposalsView() {
       />
 
       {pendingCount > 0 && (
-        <Alert variant="info">
-          {pendingCount} proposition{pendingCount > 1 ? 's' : ''} en attente de modération.
-        </Alert>
+        <Alert variant="info">{formatCount(pendingCount, 'proposition')} en attente de modération.</Alert>
       )}
       {notice && <Alert variant="success">{notice}</Alert>}
       {error && <Alert variant="error">{error}</Alert>}
@@ -117,7 +128,7 @@ export function AdminProposalsView() {
               >
                 <div className="min-w-0 flex-1 basis-full sm:basis-0">
                   <p className="truncate font-medium text-navy-900">{proposal.title}</p>
-                  <p className="mt-0.5 truncate text-xs text-navy-400">{proposal.typeName}</p>
+                  <p className="mt-0.5 truncate text-xs text-navy-500">{proposal.typeName}</p>
                 </div>
                 <Badge variant={DOCUMENT_STATUS_VARIANT[proposal.status]}>
                   {DOCUMENT_STATUS_LABEL[proposal.status]}
@@ -165,27 +176,27 @@ export function AdminProposalsView() {
 
             <dl className="grid gap-x-6 gap-y-3 border-t border-navy-100 pt-4 sm:grid-cols-2">
               <div>
-                <dt className="text-xs uppercase tracking-wide text-navy-400">Matière</dt>
+                <dt className="text-xs uppercase tracking-wide text-navy-500">Matière</dt>
                 <dd className="text-sm text-navy-900">{selected.subjectName}</dd>
               </div>
               <div>
-                <dt className="text-xs uppercase tracking-wide text-navy-400">Niveau</dt>
+                <dt className="text-xs uppercase tracking-wide text-navy-500">Niveau</dt>
                 <dd className="text-sm text-navy-900">{selected.levelName ?? '—'}</dd>
               </div>
               <div>
-                <dt className="text-xs uppercase tracking-wide text-navy-400">Année</dt>
+                <dt className="text-xs uppercase tracking-wide text-navy-500">Année</dt>
                 <dd className="text-sm text-navy-900">{formatAcademicYear(selected.academicYear)}</dd>
               </div>
               <div>
-                <dt className="text-xs uppercase tracking-wide text-navy-400">Proposé par</dt>
+                <dt className="text-xs uppercase tracking-wide text-navy-500">Proposé par</dt>
                 <dd className="text-sm text-navy-900">{selected.uploaderName ?? '—'}</dd>
               </div>
               <div>
-                <dt className="text-xs uppercase tracking-wide text-navy-400">Taille</dt>
+                <dt className="text-xs uppercase tracking-wide text-navy-500">Taille</dt>
                 <dd className="text-sm text-navy-900">{formatFileSize(selected.sizeBytes)}</dd>
               </div>
               <div>
-                <dt className="text-xs uppercase tracking-wide text-navy-400">Déposé le</dt>
+                <dt className="text-xs uppercase tracking-wide text-navy-500">Déposé le</dt>
                 <dd className="text-sm text-navy-900">{formatDate(selected.createdAt)}</dd>
               </div>
             </dl>
@@ -222,7 +233,7 @@ export function AdminProposalsView() {
                       variant="ghost"
                       className="text-red-600 hover:bg-red-50"
                       disabled={busyId === selected.id}
-                      onClick={() => reject(selected)}
+                      onClick={() => askReject(selected)}
                     >
                       Rejeter
                     </Button>
@@ -236,6 +247,51 @@ export function AdminProposalsView() {
                   </Button>
                 )}
               </div>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      <Modal
+        open={rejecting !== null}
+        onClose={() => setRejecting(null)}
+        title="Rejeter la proposition"
+      >
+        {rejecting && (
+          <div className="space-y-4 px-6 py-5">
+            <p className="text-sm text-navy-700">
+              Vous êtes sur le point de rejeter{' '}
+              <strong className="text-navy-900">« {rejecting.title} »</strong>. Un motif est requis :
+              il sera communiqué à l’étudiant.
+            </p>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="proposal-reason">Motif du rejet</Label>
+              <Textarea
+                id="proposal-reason"
+                value={reason}
+                onChange={(event) => setReason(event.target.value)}
+                rows={3}
+                maxLength={500}
+                required
+                placeholder="Expliquez pourquoi cette proposition est refusée…"
+              />
+            </div>
+
+            {error && <Alert variant="error">{error}</Alert>}
+
+            <div className="flex justify-end gap-2 border-t border-navy-100 pt-4">
+              <Button variant="secondary" onClick={() => setRejecting(null)} disabled={busyId !== null}>
+                Annuler
+              </Button>
+              <Button
+                variant="danger"
+                onClick={confirmReject}
+                loading={busyId === rejecting.id}
+                disabled={reason.trim().length === 0}
+              >
+                Rejeter
+              </Button>
             </div>
           </div>
         )}

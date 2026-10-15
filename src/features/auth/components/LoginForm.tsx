@@ -17,6 +17,7 @@ type FieldErrors = { email?: string; password?: string };
 export function LoginForm() {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [submitting, setSubmitting] = useState(false);
   const [generalError, setGeneralError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
@@ -40,6 +41,7 @@ export function LoginForm() {
     }
 
     try {
+      setSubmitting(true);
       const result = await login(parsed.data);
       startTransition(() => {
         if (result.mustChangePassword) {
@@ -67,13 +69,15 @@ export function LoginForm() {
       } else {
         setGeneralError('Une erreur est survenue. Veuillez réessayer.');
       }
+    } finally {
+      setSubmitting(false);
     }
   }
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Connexion</CardTitle>
+        <CardTitle as="h1">Connexion</CardTitle>
         <CardDescription>Accédez à la bibliothèque numérique de l&apos;ESI.</CardDescription>
       </CardHeader>
       <CardContent>
@@ -110,8 +114,8 @@ export function LoginForm() {
             </Link>
           </div>
 
-          <Button type="submit" fullWidth loading={isPending}>
-            {isPending ? 'Connexion…' : 'Se connecter'}
+          <Button type="submit" fullWidth loading={submitting || isPending}>
+            {submitting || isPending ? 'Connexion…' : 'Se connecter'}
           </Button>
         </form>
       </CardContent>

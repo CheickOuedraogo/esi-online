@@ -64,10 +64,11 @@ export function AdminCatalogView() {
           <h2 className="text-sm font-semibold uppercase tracking-wide text-navy-500">Matières</h2>
           <div className="mt-3 overflow-x-auto">
             <table className="w-full min-w-[520px] text-sm">
+              <caption className="sr-only">Matières et niveaux</caption>
               <thead>
-                <tr className="border-b border-navy-100 text-left text-xs uppercase tracking-wide text-navy-400">
-                  <th className="px-3 py-2 font-semibold">Matière</th>
-                  <th className="px-3 py-2 font-semibold">Niveau</th>
+                <tr className="border-b border-navy-100 text-left text-xs uppercase tracking-wide text-navy-500">
+                  <th scope="col" className="px-3 py-2 font-semibold">Matière</th>
+                  <th scope="col" className="px-3 py-2 font-semibold">Niveau</th>
                 </tr>
               </thead>
               <tbody>

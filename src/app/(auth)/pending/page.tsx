@@ -10,7 +10,7 @@ export default function PendingPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Compte en attente de validation</CardTitle>
+        <CardTitle as="h1">Compte en attente de validation</CardTitle>
         <CardDescription>
           Votre inscription a bien été enregistrée. Un administrateur doit valider votre compte
           avant que vous puissiez accéder à la bibliothèque.

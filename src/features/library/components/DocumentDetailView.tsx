@@ -12,6 +12,7 @@ import {
   VISIBILITY_LABEL,
   VISIBILITY_VARIANT,
   formatAcademicYear,
+  formatCount,
   formatDate,
   formatFileSize,
 } from '@/lib/labels';
@@ -101,7 +102,7 @@ export function DocumentDetailView({ id }: DocumentDetailViewProps) {
           <dl className="grid grid-cols-2 gap-4 border-t border-navy-50 pt-5 sm:grid-cols-3">
             {metadata.map((entry) => (
               <div key={entry.label}>
-                <dt className="text-xs font-semibold uppercase tracking-wide text-navy-400">
+                <dt className="text-xs font-semibold uppercase tracking-wide text-navy-500">
                   {entry.label}
                 </dt>
                 <dd className="mt-1 text-sm text-navy-800">{entry.value}</dd>
@@ -113,9 +114,8 @@ export function DocumentDetailView({ id }: DocumentDetailViewProps) {
             <Button onClick={handleDownload} loading={downloading}>
               {downloading ? 'Téléchargement…' : 'Télécharger le fichier'}
             </Button>
-            <span className="text-xs text-navy-400">
-              {item.downloadCount} téléchargement{item.downloadCount > 1 ? 's' : ''} ·{' '}
-              {item.originalFilename}
+            <span className="text-xs text-navy-500">
+              {formatCount(item.downloadCount, 'téléchargement')} · {item.originalFilename}
             </span>
           </div>
         </CardContent>

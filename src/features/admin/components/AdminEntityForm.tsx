@@ -5,7 +5,7 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { Alert, Button, Card, CardContent, Input, Select } from '@/components/ui';
+import { Alert, Button, Card, CardContent, Input, Select, Textarea, useToast } from '@/components/ui';
 import { FormField } from '@/components/forms/FormField';
 import { adminContentInputSchema, type AdminContentInput } from '@/contracts/admin';
 import type { CatalogResponse } from '@/contracts/catalog';
@@ -31,6 +31,7 @@ type FieldErrors = Partial<Record<'title' | 'subjectId' | 'typeId', string>>;
 
 export function AdminEntityForm({ catalog, initial, submitLabel, onSubmit, cancelHref }: AdminEntityFormProps) {
   const router = useRouter();
+  const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
   const [generalError, setGeneralError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
@@ -62,6 +63,7 @@ export function AdminEntityForm({ catalog, initial, submitLabel, onSubmit, cance
 
     try {
       await onSubmit(parsed.data);
+      toast('Modifications enregistrées.');
       startTransition(() => router.push(cancelHref));
     } catch (error) {
       setGeneralError(
@@ -81,12 +83,11 @@ export function AdminEntityForm({ catalog, initial, submitLabel, onSubmit, cance
           </FormField>
 
           <FormField id="description" label="Description">
-            <textarea
+            <Textarea
               id="description"
               name="description"
               rows={3}
               defaultValue={initial.description}
-              className="w-full rounded-lg border border-navy-200 bg-white px-3 py-2 text-sm text-navy-900 placeholder:text-navy-300 focus:border-navy-400 focus:outline-none focus:ring-2 focus:ring-navy-200"
             />
           </FormField>
 

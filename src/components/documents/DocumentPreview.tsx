@@ -147,7 +147,7 @@ function PreviewFallback({
   return (
     <div className="flex flex-col items-center justify-center gap-4 px-6 py-16 text-center">
       <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-navy-50 text-navy-400">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className="h-6 w-6">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true" className="h-6 w-6">
           <path d="M6 3h8l4 4v14H6V3Z" strokeLinejoin="round" />
           <path d="M14 3v4h4" strokeLinejoin="round" />
         </svg>

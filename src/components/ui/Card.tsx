@@ -20,9 +20,13 @@ export function CardHeader({ className, ...props }: React.HTMLAttributes<HTMLDiv
   return <div className={cn('px-6 pb-2 pt-6', className)} {...props} />;
 }
 
-export function CardTitle({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) {
+export function CardTitle({
+  className,
+  as: Tag = 'h2',
+  ...props
+}: React.HTMLAttributes<HTMLHeadingElement> & { as?: 'h1' | 'h2' | 'h3' }) {
   return (
-    <h2 className={cn('text-xl font-semibold tracking-tight text-navy-900', className)} {...props} />
+    <Tag className={cn('text-xl font-semibold tracking-tight text-navy-900', className)} {...props} />
   );
 }
 

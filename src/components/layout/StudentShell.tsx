@@ -9,6 +9,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Button, Spinner, buttonClassName } from '@/components/ui';
+import { SkipLink } from '@/components/layout/SkipLink';
 import { logout } from '@/lib/api-client/auth';
 import { useRequireRole } from '@/lib/hooks/useSession';
 import { cn } from '@/lib/utils';
@@ -17,6 +18,8 @@ const NAV = [
   { href: '/library', label: 'Bibliothèque' },
   { href: '/proposals', label: 'Mes propositions' },
 ];
+
+const MENU_ID = 'student-menu';
 
 export function StudentShell({ children }: { children: React.ReactNode }) {
   const { user, ready } = useRequireRole('student');
@@ -32,6 +35,7 @@ export function StudentShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-dvh flex-col bg-cream">
+      <SkipLink />
       <header className="sticky top-0 z-20 border-b border-navy-100 bg-white/95 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
           <Link href={authed ? '/library' : '/'} className="flex items-center gap-2">
@@ -52,6 +56,7 @@ export function StudentShell({ children }: { children: React.ReactNode }) {
                 <Link
                   key={item.href}
                   href={item.href}
+                  aria-current={active ? 'page' : undefined}
                   className={cn(
                     'rounded-lg px-3 py-2 text-sm font-medium transition-colors',
                     active
@@ -89,10 +94,11 @@ export function StudentShell({ children }: { children: React.ReactNode }) {
             type="button"
             onClick={() => setOpen((current) => !current)}
             aria-expanded={open}
+            aria-controls={MENU_ID}
             aria-label={open ? 'Fermer le menu' : 'Ouvrir le menu'}
             className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-navy-700 transition-colors hover:bg-navy-50 sm:hidden"
           >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-6 w-6">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true" className="h-6 w-6">
               {open ? (
                 <path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" />
               ) : (
@@ -103,7 +109,10 @@ export function StudentShell({ children }: { children: React.ReactNode }) {
         </div>
 
         {open && (
-          <div className="absolute inset-x-0 top-full max-h-[calc(100dvh-4rem)] overflow-y-auto border-t border-navy-100 bg-white shadow-lg sm:hidden">
+          <div
+            id={MENU_ID}
+            className="absolute inset-x-0 top-full max-h-[calc(100dvh-4rem)] overflow-y-auto border-t border-navy-100 bg-white shadow-lg sm:hidden"
+          >
             <nav className="mx-auto flex max-w-6xl flex-col gap-1 px-4 py-3">
               {NAV.map((item) => {
                 const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
@@ -112,6 +121,7 @@ export function StudentShell({ children }: { children: React.ReactNode }) {
                     key={item.href}
                     href={item.href}
                     onClick={() => setOpen(false)}
+                    aria-current={active ? 'page' : undefined}
                     className={cn(
                       'rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
                       active ? 'bg-navy-50 text-navy-900' : 'text-navy-600 hover:bg-navy-50',
@@ -145,7 +155,7 @@ export function StudentShell({ children }: { children: React.ReactNode }) {
         )}
       </header>
 
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6">
+      <main id="contenu" className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6">
         {authed ? (
           children
         ) : (

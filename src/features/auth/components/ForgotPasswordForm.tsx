@@ -4,7 +4,7 @@
 // POST /api/auth/request-reset. L'envoi des e-mails n'est pas automatise
 // pour le moment : un administrateur traite les demandes manuellement.
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { requestResetInputSchema } from '@/contracts/auth';
 import { ApiClientError } from '@/lib/api-client/client';
@@ -30,6 +30,10 @@ export function ForgotPasswordForm() {
   const [submitted, setSubmitted] = useState(false);
   const [generalError, setGeneralError] = useState<string | null>(null);
   const [emailError, setEmailError] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    if (submitted) document.getElementById('reset-success-title')?.focus();
+  }, [submitted]);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -69,7 +73,9 @@ export function ForgotPasswordForm() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Demande envoyée</CardTitle>
+          <CardTitle id="reset-success-title" tabIndex={-1} as="h1" className="focus:outline-none">
+            Demande envoyée
+          </CardTitle>
           <CardDescription>
             Votre demande de réinitialisation a bien été enregistrée.
           </CardDescription>
@@ -94,7 +100,7 @@ export function ForgotPasswordForm() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Mot de passe oublié</CardTitle>
+        <CardTitle as="h1">Mot de passe oublié</CardTitle>
         <CardDescription>
           Indiquez votre adresse e-mail : un administrateur vous enverra un mot de passe temporaire.
         </CardDescription>

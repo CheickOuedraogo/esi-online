@@ -28,3 +28,5 @@ export { PageHeader, type PageHeaderProps } from './PageHeader';
 export { Reveal, type RevealFrom, type RevealProps } from './Reveal';
 export { Select, type SelectProps } from './Select';
 export { Spinner, type SpinnerProps } from './Spinner';
+export { Textarea, type TextareaProps } from './Textarea';
+export { ToastProvider, useToast, type ToastVariant } from './Toast';

@@ -1,6 +1,7 @@
 // Pagination de la bibliotheque.
 
 import { Button } from '@/components/ui';
+import { formatCount } from '@/lib/labels';
 
 export interface PaginationProps {
   page: number;
@@ -8,17 +9,27 @@ export interface PaginationProps {
   total: number;
   onChange: (page: number) => void;
   itemLabel?: string;
+  className?: string;
 }
 
-export function Pagination({ page, pageSize, total, onChange, itemLabel = 'document' }: PaginationProps) {
+export function Pagination({
+  page,
+  pageSize,
+  total,
+  onChange,
+  itemLabel = 'document',
+  className,
+}: PaginationProps) {
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   if (totalPages <= 1) return null;
 
   return (
-    <div className="flex items-center justify-between gap-3">
-      <p className="text-sm text-navy-500">
-        Page {page} sur {totalPages} · {total} {itemLabel}
-        {total > 1 ? 's' : ''}
+    <nav
+      aria-label="Pagination"
+      className={`flex items-center justify-between gap-3 ${className ?? ''}`.trim()}
+    >
+      <p className="text-sm text-navy-500" aria-live="polite">
+        Page {page} sur {totalPages} · {formatCount(total, itemLabel)}
       </p>
       <div className="flex gap-2">
         <Button
@@ -38,6 +49,6 @@ export function Pagination({ page, pageSize, total, onChange, itemLabel = 'docum
           Suivant
         </Button>
       </div>
-    </div>
+    </nav>
   );
 }

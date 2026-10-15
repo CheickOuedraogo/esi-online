@@ -66,3 +66,9 @@ export function formatAcademicYear(year: number | null | undefined): string {
   if (year == null) return '—';
   return `${year}-${year + 1}`;
 }
+
+// Compte lisible avec accord singulier/pluriel (ex. « 1 document », « 2 documents »).
+// En français, 0 prend le singulier (« 0 document »).
+export function formatCount(count: number, singular: string, plural = `${singular}s`): string {
+  return `${count} ${count > 1 ? plural : singular}`;
+}

@@ -5,8 +5,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { SplashScreen } from '@/components/layout/SplashScreen';
-import { Header } from '@/components/layout/Header';
-import { Footer } from '@/components/layout/Footer';
 import { Reveal } from '@/components/ui';
 
 const PRIMARY_ON_DARK =
@@ -23,7 +21,7 @@ const FEATURES = [
     description:
       'Titre, matière, niveau ou type de document : trouvez ce que vous cherchez en quelques secondes.',
     icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-6 w-6">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true" className="h-6 w-6">
         <circle cx="11" cy="11" r="7" />
         <path d="m20 20-3.5-3.5" strokeLinecap="round" />
       </svg>
@@ -34,7 +32,7 @@ const FEATURES = [
     description:
       'Une fois votre compte validé, tous les documents de la bibliothèque sont téléchargeables sans limite.',
     icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-6 w-6">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true" className="h-6 w-6">
         <path d="M12 3v12m0 0 4-4m-4 4-4-4" strokeLinecap="round" strokeLinejoin="round" />
         <path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" strokeLinecap="round" />
       </svg>
@@ -45,7 +43,7 @@ const FEATURES = [
     description:
       'Proposez vos cours, TD et annales : l’équipe les valide puis les rend disponibles pour tous.',
     icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-6 w-6">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true" className="h-6 w-6">
         <path d="M12 5v14M5 12h14" strokeLinecap="round" />
       </svg>
     ),
@@ -55,7 +53,7 @@ const FEATURES = [
     description:
       'Chaque document est vérifié par un administrateur pour garantir sa qualité et sa pertinence.',
     icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-6 w-6">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true" className="h-6 w-6">
         <path
           d="M12 3 4.5 6v5c0 4.5 3.2 7.7 7.5 9.5 4.3-1.8 7.5-5 7.5-9.5V6L12 3Z"
           strokeLinejoin="round"
@@ -91,8 +89,7 @@ export default function HomePage() {
   return (
     <>
       <SplashScreen />
-      <Header />
-      <main className="bg-cream">
+      <div className="bg-cream">
         <section className="relative overflow-hidden bg-gradient-to-b from-navy-800 to-navy-950 px-6 py-16 text-cream sm:py-20">
           <div
             aria-hidden="true"
@@ -255,8 +252,7 @@ export default function HomePage() {
             </div>
           </Reveal>
         </section>
-      </main>
-      <Footer />
+      </div>
     </>
   );
 }
