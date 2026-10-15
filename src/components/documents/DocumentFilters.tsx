@@ -1,3 +1,3 @@
-// Filtres de recherche : niveau, filiere, matiere, type et annee.
+// Filtres de recherche : niveau, matiere, type et annee.
 
 export {};

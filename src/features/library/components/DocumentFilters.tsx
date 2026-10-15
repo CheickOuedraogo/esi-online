@@ -1,5 +1,4 @@
 // Filtres de la bibliotheque (niveau, matiere, type, annee, tri).
-// ESI ne comporte qu'une seule filiere : aucun filtre « filiere ».
 
 import { Select } from '@/components/ui';
 import type { Sort } from '@/contracts/common';

@@ -37,3 +37,22 @@ export type Program = z.infer<typeof programSchema>;
 export type Subject = z.infer<typeof subjectSchema>;
 export type DocumentType = z.infer<typeof documentTypeSchema>;
 export type CatalogResponse = z.infer<typeof catalogResponseSchema>;
+
+export const createLevelInputSchema = z.object({
+  name: z.string().trim().min(1, 'Le nom est requis.').max(80, 'Le nom est trop long.'),
+});
+
+export type CreateLevelInput = z.infer<typeof createLevelInputSchema>;
+
+export const createDocumentTypeInputSchema = z.object({
+  name: z.string().trim().min(1, 'Le nom est requis.').max(80, 'Le nom est trop long.'),
+});
+
+export type CreateDocumentTypeInput = z.infer<typeof createDocumentTypeInputSchema>;
+
+export const createSubjectInputSchema = z.object({
+  name: z.string().trim().min(1, 'Le nom est requis.').max(120, 'Le nom est trop long.'),
+  levelId: uuidSchema,
+});
+
+export type CreateSubjectInput = z.infer<typeof createSubjectInputSchema>;

@@ -14,15 +14,14 @@ const PRIMARY_ON_DARK =
 const SECONDARY_ON_DARK =
   'inline-flex h-12 items-center justify-center rounded-lg border border-white/60 bg-white/10 px-8 text-base font-medium text-cream transition-colors hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-navy-900';
 
-const DOCUMENT_TYPES = ['Cours', 'TD', 'TP', 'Examens', 'Corrigés', 'Mémoires', 'Annales'] as const;
-const PROGRAMS = ['Génie logiciel', 'Réseaux et télécoms', 'Systèmes d’information', 'Cybersécurité'] as const;
+const DOCUMENT_TYPES = ['Licence', 'Master', "Tests d'entrée"] as const;
 const LEVELS = ['Licence 1', 'Licence 2', 'Licence 3', 'Master 1', 'Master 2'] as const;
 
 const FEATURES = [
   {
     title: 'Recherche rapide',
     description:
-      'Titre, matière, niveau, filière ou type de document : trouvez ce que vous cherchez en quelques secondes.',
+      'Titre, matière, niveau ou type de document : trouvez ce que vous cherchez en quelques secondes.',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-6 w-6">
         <circle cx="11" cy="11" r="7" />
@@ -70,7 +69,7 @@ const FEATURES = [
 const STEPS = [
   {
     title: 'Créez votre compte',
-    description: 'Indiquez votre nom, votre e-mail, votre filière et votre niveau.',
+    description: 'Indiquez votre nom, votre e-mail et votre niveau.',
   },
   {
     title: 'Votre compte est validé',
@@ -194,11 +193,11 @@ export default function HomePage() {
             <Reveal from="left">
               <SectionLabel>Les contenus</SectionLabel>
               <h2 className="mt-3 text-2xl font-semibold tracking-tight text-navy-900 sm:text-3xl">
-                Cours, travaux pratiques, annales et plus
+                Licence, Master et tests d&apos;entrée
               </h2>
               <p className="mt-4 max-w-2xl text-sm text-navy-600 sm:text-base">
-                La bibliothèque couvre toutes les filières et tous les niveaux de l&apos;ESI, avec
-                plusieurs types de documents.
+                La bibliothèque couvre tous les niveaux de l&apos;ESI, avec plusieurs types de
+                documents.
               </p>
             </Reveal>
             <Reveal from="up">
@@ -213,23 +212,8 @@ export default function HomePage() {
                 ))}
               </div>
             </Reveal>
-            <div className="mt-8 grid gap-5 sm:grid-cols-2">
-              <Reveal from="left">
-                <div className="rounded-2xl border border-navy-100 bg-white p-6">
-                  <h3 className="text-sm font-semibold uppercase tracking-wide text-navy-500">
-                    Filières
-                  </h3>
-                  <ul className="mt-3 space-y-2 text-sm text-navy-700">
-                    {PROGRAMS.map((program) => (
-                      <li key={program} className="flex items-center gap-2">
-                        <span className="h-1.5 w-1.5 rounded-full bg-gold-400" />
-                        {program}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </Reveal>
-              <Reveal from="right">
+            <div className="mt-8">
+              <Reveal from="up">
                 <div className="rounded-2xl border border-navy-100 bg-white p-6">
                   <h3 className="text-sm font-semibold uppercase tracking-wide text-navy-500">
                     Niveaux

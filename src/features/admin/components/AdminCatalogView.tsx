@@ -1,6 +1,6 @@
 'use client';
 
-// Consultation du catalogue (niveaux, filieres, matieres, types de documents).
+// Consultation du catalogue (niveaux, matieres, types de documents).
 
 import { Alert, Badge, Card, CardContent, PageHeader, Spinner } from '@/components/ui';
 import { getCatalog } from '@/lib/api-client/catalog';
@@ -21,11 +21,10 @@ export function AdminCatalogView() {
     return <Alert variant="error">{catalog.error ?? 'Impossible de charger le catalogue.'}</Alert>;
   }
 
-  const { levels, programs, subjects, documentTypes } = catalog.data;
+  const { levels, subjects, documentTypes } = catalog.data;
 
   const sections = [
     { title: 'Niveaux', items: levels.map((level) => level.name) },
-    { title: 'Filières', items: programs.map((program) => program.name) },
     { title: 'Types de documents', items: documentTypes.map((type) => type.name) },
   ];
 
@@ -33,7 +32,7 @@ export function AdminCatalogView() {
     <div className="space-y-6">
       <PageHeader
         title="Catalogue"
-        description="Référentiel des niveaux, filières, matières et types de documents."
+        description="Référentiel des niveaux, matières et types de documents."
       />
 
       <Alert variant="info">
@@ -41,7 +40,7 @@ export function AdminCatalogView() {
         est en lecture seule pour le moment.
       </Alert>
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2">
         {sections.map((section) => (
           <Card key={section.title}>
             <CardContent className="py-5">
@@ -69,7 +68,6 @@ export function AdminCatalogView() {
                 <tr className="border-b border-navy-100 text-left text-xs uppercase tracking-wide text-navy-400">
                   <th className="px-3 py-2 font-semibold">Matière</th>
                   <th className="px-3 py-2 font-semibold">Niveau</th>
-                  <th className="px-3 py-2 font-semibold">Filière</th>
                 </tr>
               </thead>
               <tbody>
@@ -78,9 +76,6 @@ export function AdminCatalogView() {
                     <td className="px-3 py-2 font-medium text-navy-800">{subject.name}</td>
                     <td className="px-3 py-2 text-navy-600">
                       {levels.find((level) => level.id === subject.levelId)?.name ?? '—'}
-                    </td>
-                    <td className="px-3 py-2 text-navy-600">
-                      {programs.find((program) => program.id === subject.programId)?.name ?? '—'}
                     </td>
                   </tr>
                 ))}

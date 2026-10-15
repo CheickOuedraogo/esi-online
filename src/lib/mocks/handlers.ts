@@ -11,7 +11,7 @@ import {
   type UserStatus,
 } from '@/contracts/auth';
 import type { CatalogResponse } from '@/contracts/catalog';
-import { reviewProposalInputSchema, updateUserStatusInputSchema, adminContentInputSchema } from '@/contracts/admin';
+import { reviewProposalInputSchema, updateUserStatusInputSchema, adminContentInputSchema, resetPasswordInputSchema } from '@/contracts/admin';
 import { createProposalInputSchema, updateProposalInputSchema } from '@/contracts/proposals';
 import { buildMockPdf } from './pdf';
 import {
@@ -32,10 +32,6 @@ import {
   type DbDocument,
   type MockUser,
 } from './db';
-
-const TEMP_PASSWORD = 'EsiTemp2026';
-
-const subjectById = new Map(CATALOG.subjects.map((subject) => [subject.id, subject]));
 
 function errorResponse(code: string, message: string, status: number, details?: unknown) {
   return HttpResponse.json({ error: { code, message, details } }, { status });
@@ -93,7 +89,7 @@ function filterDocuments(source: DbDocument[], url: URL) {
     if (subjectId && item.subjectId !== subjectId) return false;
     if (typeId && item.typeId !== typeId) return false;
     if (year && item.academicYear !== year) return false;
-    const subject = subjectById.get(item.subjectId);
+    const subject = CATALOG.subjects.find((s) => s.id === item.subjectId);
     if (levelId && subject?.levelId !== levelId) return false;
     if (programId && subject?.programId !== programId) return false;
     if (q) {
@@ -118,12 +114,6 @@ function filterDocuments(source: DbDocument[], url: URL) {
     pageSize,
     total,
   };
-}
-
-function temporaryPasswordResponse(user: MockUser) {
-  user.password = TEMP_PASSWORD;
-  user.mustChangePassword = true;
-  return HttpResponse.json({ id: user.id, temporaryPassword: TEMP_PASSWORD });
 }
 
 export const handlers = [
@@ -419,14 +409,6 @@ export const handlers = [
     return HttpResponse.json(toAdminUser(user));
   }),
 
-  http.post('/api/admin/users/:id/reset-password', ({ params }) => {
-    const auth = requireAdmin();
-    if (isResponse(auth)) return auth;
-    const user = users.find((candidate) => candidate.id === params.id);
-    if (!user) return errorResponse('NOT_FOUND', 'Utilisateur introuvable.', 404);
-    return temporaryPasswordResponse(user);
-  }),
-
   http.delete('/api/admin/users/:id', ({ params }) => {
     const auth = requireAdmin();
     if (isResponse(auth)) return auth;
@@ -579,15 +561,21 @@ export const handlers = [
     return HttpResponse.json(items);
   }),
 
-  http.patch('/api/admin/reset-requests/:id', ({ params }) => {
+  http.patch('/api/admin/reset-requests/:id', async ({ params, request }) => {
     const auth = requireAdmin();
     if (isResponse(auth)) return auth;
-    const request = resetRequests.find((candidate) => candidate.id === params.id);
-    if (!request) return errorResponse('NOT_FOUND', 'Demande introuvable.', 404);
-    const user = getUserById(request.userId);
+    const payload = await request.json().catch(() => null);
+    const parsed = resetPasswordInputSchema.safeParse(payload);
+    if (!parsed.success) {
+      return errorResponse('VALIDATION_ERROR', 'Mot de passe invalide.', 400, parsed.error.flatten());
+    }
+    const resetRequest = resetRequests.find((candidate) => candidate.id === params.id);
+    if (!resetRequest) return errorResponse('NOT_FOUND', 'Demande introuvable.', 404);
+    const user = getUserById(resetRequest.userId);
     if (!user) return errorResponse('NOT_FOUND', 'Utilisateur introuvable.', 404);
-    request.status = 'done';
-    const response = temporaryPasswordResponse(user);
-    return response;
+    user.password = parsed.data.password;
+    user.mustChangePassword = true;
+    resetRequest.status = 'done';
+    return HttpResponse.json(toAdminUser(user));
   }),
 ];

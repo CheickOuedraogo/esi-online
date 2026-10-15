@@ -3,7 +3,7 @@
 
 import { z } from 'zod';
 import { uuidSchema } from './common';
-import { authUserSchema, userStatusSchema } from './auth';
+import { authUserSchema, emailSchema, userRoleSchema, userStatusSchema } from './auth';
 
 export const adminUserSchema = authUserSchema.extend({
   programName: z.string().nullable(),
@@ -35,7 +35,15 @@ export const reviewProposalInputSchema = z.object({
 
 export type ReviewProposalInput = z.infer<typeof reviewProposalInputSchema>;
 
-// Champs modifiables par l'administration sur un document ou une proposition.
+export const resetPasswordInputSchema = z.object({
+  password: z
+    .string()
+    .min(8, 'Le mot de passe doit contenir au moins 8 caractères.')
+    .max(200, 'Le mot de passe est trop long.'),
+});
+
+export type ResetPasswordInput = z.infer<typeof resetPasswordInputSchema>;
+
 export const adminContentInputSchema = z.object({
   title: z.string().trim().min(3, 'Le titre doit contenir au moins 3 caractères.').max(200),
   description: z.string().trim().max(2000).optional(),
@@ -46,6 +54,23 @@ export const adminContentInputSchema = z.object({
 });
 
 export type AdminContentInput = z.infer<typeof adminContentInputSchema>;
+
+export const createUserInputSchema = z.object({
+  fullName: z
+    .string()
+    .trim()
+    .min(2, 'Le nom doit contenir au moins 2 caractères.')
+    .max(120, 'Le nom est trop long.'),
+  email: emailSchema,
+  password: z
+    .string()
+    .min(8, 'Le mot de passe doit contenir au moins 8 caractères.')
+    .max(200, 'Le mot de passe est trop long.'),
+  levelId: uuidSchema.nullable().optional(),
+  role: userRoleSchema,
+});
+
+export type CreateUserInput = z.infer<typeof createUserInputSchema>;
 
 export const resetRequestSchema = z.object({
   id: uuidSchema,

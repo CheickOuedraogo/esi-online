@@ -67,7 +67,6 @@ export function DocumentDetailView({ id }: DocumentDetailViewProps) {
   const metadata = [
     { label: 'Matière', value: item.subjectName },
     { label: 'Niveau', value: item.levelName ?? '—' },
-    { label: 'Filière', value: item.programName ?? '—' },
     { label: 'Type', value: item.typeName },
     { label: 'Année', value: item.academicYear ?? '—' },
     { label: 'Taille', value: formatFileSize(item.sizeBytes) },

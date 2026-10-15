@@ -21,6 +21,8 @@ export {
 export { Input, type InputProps } from './Input';
 export { PasswordInput, type PasswordInputProps } from './PasswordInput';
 export { Label, type LabelProps } from './Label';
+export { Modal, type ModalProps } from './Modal';
+export { IconButton, EyeIcon, type IconButtonProps } from './IconButton';
 export { EmptyState, type EmptyStateProps } from './EmptyState';
 export { PageHeader, type PageHeaderProps } from './PageHeader';
 export { Reveal, type RevealFrom, type RevealProps } from './Reveal';

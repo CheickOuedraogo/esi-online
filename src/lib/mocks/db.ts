@@ -67,13 +67,9 @@ export const CATALOG: CatalogResponse = {
     { id: '99999999-9999-4999-8999-999999999990', name: 'Cryptographie', levelId: '33333333-3333-4333-8333-333333333336', programId: '88888888-8888-4888-8888-888888888888' },
   ],
   documentTypes: [
-    { id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1', name: 'Cours' },
-    { id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa2', name: 'TD' },
-    { id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa3', name: 'TP' },
-    { id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa4', name: 'Examen' },
-    { id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa5', name: 'Corrigé' },
-    { id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa6', name: 'Mémoire' },
-    { id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa7', name: 'Autre' },
+    { id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1', name: 'Licence' },
+    { id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa2', name: 'Master' },
+    { id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa3', name: "Test d'entrée" },
   ],
 };
 
@@ -206,16 +202,16 @@ const SALIF = '14141414-1414-4414-8414-141414141414';
 
 export const documents: DbDocument[] = [
   doc('b0000000-0000-4000-8000-000000000001', 'Algorithmique — Cours complet', 'Cours d’algorithmique : structures de données, complexité, tri et recherche.', '99999999-9999-4999-8999-999999999991', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1', '2025-2026', 'students', 2480, ADMIN_ID, 128, '2026-09-02T09:00:00.000Z'),
-  doc('b0000000-0000-4000-8000-000000000002', 'Algorithmique — Corrigés des TD', 'Correction détaillée des travaux dirigés de la matière.', '99999999-9999-4999-8999-999999999991', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa5', '2025-2026', 'students', 1120, ADMIN_ID, 96, '2026-09-03T09:00:00.000Z'),
+  doc('b0000000-0000-4000-8000-000000000002', 'Algorithmique — Corrigés des TD', 'Correction détaillée des travaux dirigés de la matière.', '99999999-9999-4999-8999-999999999991', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1', '2025-2026', 'students', 1120, ADMIN_ID, 96, '2026-09-03T09:00:00.000Z'),
   doc('b0000000-0000-4000-8000-000000000003', 'Bases de données — Cours', 'Modèle relationnel, algèbre relationnelle, SQL et normalisation.', '99999999-9999-4999-8999-999999999992', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1', '2025-2026', 'students', 3260, ADMIN_ID, 154, '2026-09-04T09:00:00.000Z'),
-  doc('b0000000-0000-4000-8000-000000000004', 'Bases de données — TP MySQL', 'Énoncés des travaux pratiques sous MySQL Workbench.', '99999999-9999-4999-8999-999999999992', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa3', '2025-2026', 'students', 890, ADMIN_ID, 87, '2026-09-05T09:00:00.000Z'),
+  doc('b0000000-0000-4000-8000-000000000004', 'Bases de données — TP MySQL', 'Énoncés des travaux pratiques sous MySQL Workbench.', '99999999-9999-4999-8999-999999999992', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1', '2025-2026', 'students', 890, ADMIN_ID, 87, '2026-09-05T09:00:00.000Z'),
   doc('b0000000-0000-4000-8000-000000000005', 'Programmation web — Cours HTML/CSS/JS', 'Fondamentaux du développement web côté client.', '99999999-9999-4999-8999-999999999993', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1', '2024-2025', 'public', 1980, ADMIN_ID, 201, '2026-08-15T09:00:00.000Z'),
-  doc('b0000000-0000-4000-8000-000000000006', 'Programmation web — Examen 2025', 'Sujet d’examen de programmation web, session 2025.', '99999999-9999-4999-8999-999999999993', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa4', '2024-2025', 'students', 540, ADMIN_ID, 143, '2026-08-20T09:00:00.000Z'),
-  doc('b0000000-0000-4000-8000-000000000007', 'Réseaux informatiques — TD', 'Travaux dirigés : adressage IP, sous-réseaux, protocoles.', '99999999-9999-4999-8999-999999999994', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa2', '2025-2026', 'public', 760, ADMIN_ID, 64, '2026-09-06T09:00:00.000Z'),
-  doc('b0000000-0000-4000-8000-000000000008', 'Réseaux informatiques — Examen 2024', 'Sujet d’examen de réseaux, session 2024.', '99999999-9999-4999-8999-999999999994', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa4', '2023-2024', 'public', 620, ADMIN_ID, 58, '2026-07-10T09:00:00.000Z'),
+  doc('b0000000-0000-4000-8000-000000000006', 'Programmation web — Examen 2025', 'Sujet d’examen de programmation web, session 2025.', '99999999-9999-4999-8999-999999999993', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1', '2024-2025', 'students', 540, ADMIN_ID, 143, '2026-08-20T09:00:00.000Z'),
+  doc('b0000000-0000-4000-8000-000000000007', 'Réseaux informatiques — TD', 'Travaux dirigés : adressage IP, sous-réseaux, protocoles.', '99999999-9999-4999-8999-999999999994', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1', '2025-2026', 'public', 760, ADMIN_ID, 64, '2026-09-06T09:00:00.000Z'),
+  doc('b0000000-0000-4000-8000-000000000008', 'Réseaux informatiques — Examen 2024', 'Sujet d’examen de réseaux, session 2024.', '99999999-9999-4999-8999-999999999994', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1', '2023-2024', 'public', 620, ADMIN_ID, 58, '2026-07-10T09:00:00.000Z'),
   doc('b0000000-0000-4000-8000-000000000009', 'Cybersécurité — Introduction', 'Panorama des menaces, bonnes pratiques et sécurité défensive.', '99999999-9999-4999-8999-999999999997', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1', '2025-2026', 'students', 2740, FATOU, 112, '2026-09-20T09:00:00.000Z'),
-  doc('b0000000-0000-4000-8000-000000000010', 'Cryptographie — TP', 'Chiffrement symétrique et asymétrique, exercices pratiques.', '99999999-9999-4999-8999-999999999990', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa3', '2025-2026', 'students', 1340, FATOU, 45, '2026-09-22T09:00:00.000Z'),
-  doc('b0000000-0000-4000-8000-000000000011', 'Génie logiciel — Mémoire UML', 'Mémoire de fin de cycle sur la modélisation UML d’un système.', '99999999-9999-4999-8999-999999999999', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa6', '2024-2025', 'students', 4120, SALIF, 33, '2026-08-28T09:00:00.000Z'),
+  doc('b0000000-0000-4000-8000-000000000010', 'Cryptographie — TP', 'Chiffrement symétrique et asymétrique, exercices pratiques.', '99999999-9999-4999-8999-999999999990', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1', '2025-2026', 'students', 1340, FATOU, 45, '2026-09-22T09:00:00.000Z'),
+  doc('b0000000-0000-4000-8000-000000000011', 'Génie logiciel — Mémoire UML', 'Mémoire de fin de cycle sur la modélisation UML d’un système.', '99999999-9999-4999-8999-999999999999', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa2', '2024-2025', 'students', 4120, SALIF, 33, '2026-08-28T09:00:00.000Z'),
   doc('b0000000-0000-4000-8000-000000000012', 'Mathématiques discrètes — Cours', 'Logique, ensembles, relations, graphes et combinatoire.', '99999999-9999-4999-8999-999999999998', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1', '2025-2026', 'public', 2860, ADMIN_ID, 77, '2026-09-08T09:00:00.000Z'),
 ];
 
@@ -225,7 +221,7 @@ export const proposals: DbDocument[] = [
     title: 'Réseaux informatiques — Fiche de synthèse',
     description: 'Fiche de synthèse sur l’adressage IP et le routage.',
     subjectId: '99999999-9999-4999-8999-999999999994',
-    typeId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa7',
+    typeId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa3',
     academicYear: '2025-2026',
     visibility: 'students',
     status: 'pending',
@@ -243,7 +239,7 @@ export const proposals: DbDocument[] = [
     title: 'Algorithmique — Fiche de révision',
     description: 'Fiche synthétique sur les tris et la complexité.',
     subjectId: '99999999-9999-4999-8999-999999999991',
-    typeId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa7',
+    typeId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa3',
     academicYear: '2025-2026',
     visibility: 'students',
     status: 'pending',
@@ -261,7 +257,7 @@ export const proposals: DbDocument[] = [
     title: 'Bases de données — Annales 2025',
     description: 'Recueil d’annales corrigées de la matière.',
     subjectId: '99999999-9999-4999-8999-999999999992',
-    typeId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa4',
+    typeId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1',
     academicYear: '2025-2026',
     visibility: 'students',
     status: 'pending',
@@ -279,7 +275,7 @@ export const proposals: DbDocument[] = [
     title: 'Programmation web — TP noté',
     description: 'Énoncé du TP noté de programmation web.',
     subjectId: '99999999-9999-4999-8999-999999999993',
-    typeId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa3',
+    typeId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1',
     academicYear: '2024-2025',
     visibility: 'students',
     status: 'rejected',
@@ -318,12 +314,6 @@ export const resetRequests: DbResetRequest[] = [
   { id: 'd0000000-0000-4000-8000-000000000003', userId: '14141414-1414-4414-8414-141414141414', status: 'done', createdAt: '2026-10-02T11:00:00.000Z' },
 ];
 
-const levelById = new Map(CATALOG.levels.map((level) => [level.id, level]));
-const programById = new Map(CATALOG.programs.map((program) => [program.id, program]));
-const subjectById = new Map(CATALOG.subjects.map((subject) => [subject.id, subject]));
-const typeById = new Map(CATALOG.documentTypes.map((type) => [type.id, type]));
-const userById = new Map(users.map((user) => [user.id, user]));
-
 export function toPublicUser({ password: _password, ...rest }: MockUser): AuthUser {
   void _password;
   return rest;
@@ -332,13 +322,13 @@ export function toPublicUser({ password: _password, ...rest }: MockUser): AuthUs
 export function toAdminUser(user: MockUser): AdminUser {
   return {
     ...toPublicUser(user),
-    programName: user.programId ? programById.get(user.programId)?.name ?? null : null,
-    levelName: user.levelId ? levelById.get(user.levelId)?.name ?? null : null,
+    programName: user.programId ? CATALOG.programs.find((p) => p.id === user.programId)?.name ?? null : null,
+    levelName: user.levelId ? CATALOG.levels.find((l) => l.id === user.levelId)?.name ?? null : null,
   };
 }
 
 export function toDocumentItem(item: DbDocument): DocumentItem {
-  const subject = subjectById.get(item.subjectId);
+  const subject = CATALOG.subjects.find((s) => s.id === item.subjectId);
   return {
     id: item.id,
     title: item.title,
@@ -346,11 +336,11 @@ export function toDocumentItem(item: DbDocument): DocumentItem {
     subjectId: item.subjectId,
     subjectName: subject?.name ?? 'Matière inconnue',
     levelId: subject?.levelId ?? null,
-    levelName: subject ? levelById.get(subject.levelId)?.name ?? null : null,
+    levelName: subject ? CATALOG.levels.find((l) => l.id === subject.levelId)?.name ?? null : null,
     programId: subject?.programId ?? null,
-    programName: subject ? programById.get(subject.programId)?.name ?? null : null,
+    programName: subject ? CATALOG.programs.find((p) => p.id === subject.programId)?.name ?? null : null,
     typeId: item.typeId,
-    typeName: typeById.get(item.typeId)?.name ?? 'Autre',
+    typeName: CATALOG.documentTypes.find((t) => t.id === item.typeId)?.name ?? 'Autre',
     academicYear: item.academicYear,
     visibility: item.visibility,
     status: item.status,
@@ -358,7 +348,7 @@ export function toDocumentItem(item: DbDocument): DocumentItem {
     mimeType: item.mimeType,
     sizeBytes: item.sizeBytes,
     uploadedBy: item.uploadedBy,
-    uploaderName: item.uploadedBy ? userById.get(item.uploadedBy)?.fullName ?? null : null,
+    uploaderName: item.uploadedBy ? users.find((u) => u.id === item.uploadedBy)?.fullName ?? null : null,
     downloadCount: item.downloadCount,
     createdAt: item.createdAt,
     publishedAt: item.publishedAt,
@@ -381,7 +371,7 @@ function daysAgoIso(days: number): string {
 }
 
 export function getUserById(id: string | null): MockUser | undefined {
-  return id ? userById.get(id) : undefined;
+  return id ? users.find((user) => user.id === id) : undefined;
 }
 
 export function getUserByEmail(email: string): MockUser | undefined {
