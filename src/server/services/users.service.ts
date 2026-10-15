@@ -9,8 +9,11 @@ import {
   passwordResetRequests,
   rejections,
   documents,
+  levels,
+  programs,
 } from "@/server/db/schema";
 import {
+  AdminUser,
   AdminUserFilters,
   UpdateUserStatus,
   ResetPasswordResponse,
@@ -44,10 +47,23 @@ function toUserPublic(row: typeof users.$inferSelect): UserPublic {
   };
 }
 
+function toAdminUser(
+  row: (typeof users.$inferSelect) & {
+    programName?: string | null;
+    levelName?: string | null;
+  }
+): AdminUser {
+  return {
+    ...toUserPublic(row),
+    programName: row.programName ?? null,
+    levelName: row.levelName ?? null,
+  };
+}
+
 export const usersService = {
   async listUsers(
     filters: AdminUserFilters
-  ): Promise<PaginatedResponse<UserPublic>> {
+  ): Promise<PaginatedResponse<AdminUser>> {
     const page = filters.page ?? 1;
     const pageSize = filters.pageSize ?? 20;
     const offset = (page - 1) * pageSize;
@@ -80,8 +96,14 @@ export const usersService = {
         .from(users)
         .where(whereClause),
       db
-        .select()
+        .select({
+          u: users,
+          programName: programs.name,
+          levelName: levels.name,
+        })
         .from(users)
+        .leftJoin(programs, eq(users.programId, programs.id))
+        .leftJoin(levels, eq(users.levelId, levels.id))
         .where(whereClause)
         .orderBy(desc(users.createdAt))
         .limit(pageSize)
@@ -91,11 +113,34 @@ export const usersService = {
     const total = totalResult[0]?.total ?? 0;
 
     return {
-      items: userRows.map(toUserPublic),
+      items: userRows.map((r) =>
+        toAdminUser({ ...r.u, programName: r.programName, levelName: r.levelName })
+      ),
       page,
       pageSize,
       total,
     };
+  },
+
+  // ── Utilisateur unique enrichi des noms de filière et de niveau ────────────
+  async getAdminUser(userId: string): Promise<AdminUser> {
+    const [row] = await db
+      .select({
+        u: users,
+        programName: programs.name,
+        levelName: levels.name,
+      })
+      .from(users)
+      .leftJoin(programs, eq(users.programId, programs.id))
+      .leftJoin(levels, eq(users.levelId, levels.id))
+      .where(eq(users.id, userId))
+      .limit(1);
+
+    if (!row) {
+      throw new NotFoundError("Utilisateur introuvable");
+    }
+
+    return toAdminUser({ ...row.u, programName: row.programName, levelName: row.levelName });
   },
 
   async updateUserStatus(
@@ -126,14 +171,13 @@ export const usersService = {
     }
 
     // Mise à jour du statut
-    const [updatedUser] = await db
+    await db
       .update(users)
       .set({
         status: input.status,
         updatedAt: new Date(),
       })
-      .where(eq(users.id, targetUserId))
-      .returning();
+      .where(eq(users.id, targetUserId));
 
     // Enregistrement du motif si refus
     if (input.status === "rejected" && input.reason) {
@@ -150,7 +194,7 @@ export const usersService = {
       await deleteAllUserSessions(targetUserId);
     }
 
-    return toUserPublic(updatedUser);
+    return this.getAdminUser(targetUserId);
   },
 
   async deleteUser(adminId: string, targetUserId: string): Promise<void> {
@@ -393,14 +437,14 @@ export const usersService = {
       })
       .returning();
 
-    return toUserPublic(newUser);
+    return this.getAdminUser(newUser.id);
   },
 
   async handleResetRequest(
     adminId: string,
     requestId: string,
     explicitPassword?: string
-  ): Promise<UserPublic> {
+  ): Promise<AdminUser> {
     const [request] = await db
       .select()
       .from(passwordResetRequests)
@@ -414,15 +458,14 @@ export const usersService = {
     const tempPassword = explicitPassword || generateTemporaryPassword(14);
     const newHash = await hashPassword(tempPassword);
 
-    const [updatedUser] = await db
+    await db
       .update(users)
       .set({
         passwordHash: newHash,
         mustChangePassword: true,
         updatedAt: new Date(),
       })
-      .where(eq(users.id, request.userId))
-      .returning();
+      .where(eq(users.id, request.userId));
 
     await db
       .update(passwordResetRequests)
@@ -435,6 +478,6 @@ export const usersService = {
 
     await deleteAllUserSessions(request.userId);
 
-    return toUserPublic(updatedUser);
+    return this.getAdminUser(request.userId);
   },
 };

@@ -15,6 +15,7 @@ import {
   Proposal,
   ProposalFilters,
   ModerateProposal,
+  PROPOSAL_RETENTION_DAYS,
 } from "@/contracts/proposals";
 import { PaginatedResponse } from "@/contracts/common";
 import {
@@ -28,6 +29,20 @@ import {
   validateFileHeader,
   ValidatedFileMeta,
 } from "@/server/storage";
+
+const RETENTION_MS = PROPOSAL_RETENTION_DAYS * 24 * 60 * 60 * 1000;
+
+// Calcule les champs de rétention : le contenu d'une proposition non approuvée
+// n'est disponible que pendant PROPOSAL_RETENTION_DAYS. Un document approuvé
+// devient un document permanent (fichier conservé), donc toujours disponible.
+function retentionFields(status: string, createdAt: Date) {
+  const expiresAt = createdAt.getTime() + RETENTION_MS;
+  const expired = Date.now() >= expiresAt;
+  return {
+    contentAvailable: status === "approved" ? true : !expired,
+    fileExpiresAt: new Date(expiresAt).toISOString(),
+  };
+}
 
 export const proposalsService = {
   // ── Soumission d'une proposition par un étudiant (Buffer ou Streaming) ─────
@@ -107,6 +122,7 @@ export const proposalsService = {
       sizeBytes: created.sizeBytes,
       originalFilename: created.originalFilename,
       rejectionReason: null,
+      ...retentionFields(created.status, created.createdAt),
       createdAt: created.createdAt.toISOString(),
       publishedAt: null,
     };
@@ -161,6 +177,7 @@ export const proposalsService = {
       sizeBytes: r.sizeBytes,
       originalFilename: r.originalFilename,
       rejectionReason: r.rejectionReason,
+      ...retentionFields(r.status, r.createdAt),
       createdAt: r.createdAt.toISOString(),
       publishedAt: r.publishedAt ? r.publishedAt.toISOString() : null,
     }));
@@ -281,6 +298,7 @@ export const proposalsService = {
       sizeBytes: r.sizeBytes,
       originalFilename: r.originalFilename,
       rejectionReason: r.rejectionReason,
+      ...retentionFields(r.status, r.createdAt),
       createdAt: r.createdAt.toISOString(),
       publishedAt: r.publishedAt ? r.publishedAt.toISOString() : null,
     }));
@@ -322,7 +340,7 @@ export const proposalsService = {
             : {}),
         })
         .where(eq(documents.id, proposalId));
-    } else {
+    } else if (input.action === "reject") {
       if (!input.reason) {
         throw new ValidationError("Un motif est requis pour refuser une proposition");
       }
@@ -338,6 +356,29 @@ export const proposalsService = {
         reason: input.reason.trim(),
         createdBy: adminId,
       });
+    } else {
+      // Sans action : l'admin corrige seulement les métadonnées, le statut
+      // et la visibilité restent inchangés.
+      if (doc.status !== "pending") {
+        throw new ForbiddenError(
+          "Seules les propositions en attente peuvent être modifiées"
+        );
+      }
+
+      await db
+        .update(documents)
+        .set({
+          ...(input.title ? { title: input.title.trim() } : {}),
+          ...(input.description !== undefined
+            ? { description: input.description?.trim() ?? null }
+            : {}),
+          ...(input.subjectId ? { subjectId: input.subjectId } : {}),
+          ...(input.typeId ? { typeId: input.typeId } : {}),
+          ...(input.academicYear !== undefined
+            ? { academicYear: input.academicYear }
+            : {}),
+        })
+        .where(eq(documents.id, proposalId));
     }
 
     // Récupérer et retourner la proposition mise à jour
@@ -388,6 +429,7 @@ export const proposalsService = {
       sizeBytes: updated.sizeBytes,
       originalFilename: updated.originalFilename,
       rejectionReason: updated.rejectionReason,
+      ...retentionFields(updated.status, updated.createdAt),
       createdAt: updated.createdAt.toISOString(),
       publishedAt: updated.publishedAt ? updated.publishedAt.toISOString() : null,
     };
@@ -457,6 +499,7 @@ export const proposalsService = {
       sizeBytes: item.sizeBytes,
       originalFilename: item.originalFilename,
       rejectionReason: item.rejectionReason,
+      ...retentionFields(item.status, item.createdAt),
       createdAt: item.createdAt.toISOString(),
       publishedAt: item.publishedAt ? item.publishedAt.toISOString() : null,
     };
@@ -566,6 +609,16 @@ export const proposalsService = {
 
     if (!isAdmin && doc.uploadedBy !== userId) {
       throw new NotFoundError("Proposition introuvable");
+    }
+
+    // Rétention : hors admin, le fichier d'une proposition non approuvée
+    // n'est plus servi après la période de rétention (rétention de 3 jours).
+    if (!isAdmin && doc.status !== "approved") {
+      if (Date.now() >= doc.createdAt.getTime() + RETENTION_MS) {
+        throw new NotFoundError(
+          "Le fichier de cette proposition a expiré après la période de rétention"
+        );
+      }
     }
 
     const fileStream = await storage.get(doc.fileKey);

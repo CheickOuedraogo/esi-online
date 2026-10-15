@@ -1,9 +1,15 @@
 // Statistiques du tableau de bord administrateur :
 // comptes et propositions en attente, totaux, et top téléchargements.
 
-import { eq, and, desc, count } from "drizzle-orm";
+import { eq, desc, count, sql } from "drizzle-orm";
 import { db } from "@/server/db/client";
-import { users, documents, subjects, documentTypes } from "@/server/db/schema";
+import {
+  users,
+  documents,
+  subjects,
+  documentTypes,
+  passwordResetRequests,
+} from "@/server/db/schema";
 import { AdminStats } from "@/contracts/admin";
 import { DocumentSummary } from "@/contracts/documents";
 
@@ -12,8 +18,10 @@ export const statsService = {
     const [
       pendingUsersRes,
       pendingProposalsRes,
+      pendingResetRequestsRes,
       totalStudentsRes,
       totalDocsRes,
+      totalDownloadsRes,
       topDocsRows,
     ] = await Promise.all([
       db
@@ -26,10 +34,18 @@ export const statsService = {
         .where(eq(documents.status, "pending")),
       db
         .select({ count: count() })
+        .from(passwordResetRequests)
+        .where(eq(passwordResetRequests.status, "pending")),
+      db
+        .select({ count: count() })
         .from(users)
         .where(eq(users.role, "student")),
       db
         .select({ count: count() })
+        .from(documents)
+        .where(eq(documents.status, "approved")),
+      db
+        .select({ total: sql<number>`coalesce(sum(${documents.downloadCount}), 0)` })
         .from(documents)
         .where(eq(documents.status, "approved")),
       db
@@ -79,8 +95,10 @@ export const statsService = {
     return {
       pendingUsersCount: pendingUsersRes[0]?.count ?? 0,
       pendingProposalsCount: pendingProposalsRes[0]?.count ?? 0,
+      pendingResetRequestsCount: pendingResetRequestsRes[0]?.count ?? 0,
       totalStudentsCount: totalStudentsRes[0]?.count ?? 0,
       totalDocumentsCount: totalDocsRes[0]?.count ?? 0,
+      totalDownloadsCount: Number(totalDownloadsRes[0]?.total ?? 0),
       topDownloadedDocuments,
     };
   },

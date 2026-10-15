@@ -301,8 +301,9 @@ export const documentsService = {
       .where(eq(documents.id, id));
   },
 
-  // ── Téléchargement avec streaming et incrément atomique après succès ────────
-  async getDownload(
+  // ── Vérification d'accès et ouverture du flux pour un document ──────────────
+  // Factorisé entre le téléchargement (avec compteur) et l'aperçu inline.
+  async openFile(
     id: string,
     currentUser?: UserPublic | null
   ): Promise<{
@@ -331,7 +332,7 @@ export const documentsService = {
     if (doc.visibility === "students") {
       if (!currentUser) {
         throw new UnauthenticatedError(
-          "Un compte étudiant validé est requis pour télécharger ce document"
+          "Un compte étudiant validé est requis pour accéder à ce document"
         );
       }
       if (currentUser.role !== "admin" && currentUser.status !== "validated") {
@@ -341,9 +342,29 @@ export const documentsService = {
 
     const fileStream = await storage.get(doc.fileKey);
 
+    return {
+      stream: fileStream,
+      originalFilename: doc.originalFilename,
+      mimeType: doc.mimeType,
+      sizeBytes: doc.sizeBytes,
+    };
+  },
+
+  // ── Téléchargement avec streaming et incrément atomique après succès ────────
+  async getDownload(
+    id: string,
+    currentUser?: UserPublic | null
+  ): Promise<{
+    stream: Readable;
+    originalFilename: string;
+    mimeType: string;
+    sizeBytes: number;
+  }> {
+    const fileData = await this.openFile(id, currentUser);
+
     // Incrément atomique uniquement si l'envoi du flux au client se termine avec succès
     const trackingStream = new PassThrough();
-    fileStream.pipe(trackingStream);
+    fileData.stream.pipe(trackingStream);
     trackingStream.on("finish", () => {
       this.recordDownload(id).catch((err) => {
         console.error(`⚠️ Échec incrémentation compteur pour le document ${id} :`, err);
@@ -351,10 +372,8 @@ export const documentsService = {
     });
 
     return {
+      ...fileData,
       stream: trackingStream,
-      originalFilename: doc.originalFilename,
-      mimeType: doc.mimeType,
-      sizeBytes: doc.sizeBytes,
     };
   },
 
