@@ -10,7 +10,7 @@ import { FormField } from '@/components/forms/FormField';
 import { adminContentInputSchema, type AdminContentInput } from '@/contracts/admin';
 import type { CatalogResponse } from '@/contracts/catalog';
 import { ApiClientError } from '@/lib/api-client/client';
-import { ACADEMIC_YEARS } from '@/features/library';
+import { ACADEMIC_YEAR_OPTIONS } from '@/features/library';
 
 export interface AdminEntityFormProps {
   catalog: CatalogResponse;
@@ -19,7 +19,7 @@ export interface AdminEntityFormProps {
     description: string;
     subjectId: string;
     typeId: string;
-    academicYear: string;
+    academicYear: number | null;
     visibility: 'public' | 'students';
   };
   submitLabel: string;
@@ -120,11 +120,11 @@ export function AdminEntityForm({ catalog, initial, submitLabel, onSubmit, cance
 
           <div className="grid gap-4 sm:grid-cols-2">
             <FormField id="academicYear" label="Année académique">
-              <Select id="academicYear" name="academicYear" defaultValue={initial.academicYear}>
+              <Select id="academicYear" name="academicYear" defaultValue={initial.academicYear != null ? String(initial.academicYear) : ''}>
                 <option value="">Non précisée</option>
-                {ACADEMIC_YEARS.map((year) => (
-                  <option key={year} value={year}>
-                    {year}
+                {ACADEMIC_YEAR_OPTIONS.map((year) => (
+                  <option key={year.value} value={year.value}>
+                    {year.label}
                   </option>
                 ))}
               </Select>

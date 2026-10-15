@@ -56,7 +56,7 @@ export function AdminResetRequestsView() {
     try {
       await completeResetRequest(selected.id, parsed.data);
       requests.reload();
-      setNotice(`Mot de passe de ${selected.email} mis à jour.`);
+      setNotice(`Mot de passe de ${selected.userEmail} mis à jour.`);
       close();
     } catch (err) {
       setError(err instanceof ApiClientError ? err.message : 'Le traitement a échoué.');
@@ -97,8 +97,8 @@ export function AdminResetRequestsView() {
                 className="flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3 sm:px-5"
               >
                 <div className="min-w-0 flex-1 basis-full sm:basis-0">
-                  <p className="truncate font-medium text-navy-900">{request.fullName}</p>
-                  <p className="truncate text-xs text-navy-400">{request.email}</p>
+                  <p className="truncate font-medium text-navy-900">{request.userFullName}</p>
+                  <p className="truncate text-xs text-navy-400">{request.userEmail}</p>
                 </div>
                 <span className="text-xs text-navy-400">{formatDate(request.createdAt)}</span>
                 <Badge variant={request.status === 'pending' ? 'amber' : 'green'}>
@@ -120,7 +120,7 @@ export function AdminResetRequestsView() {
           <div className="space-y-4 px-6 py-5">
             <p className="text-sm text-navy-600">
               Définir un nouveau mot de passe pour{' '}
-              <span className="font-medium text-navy-900">{selected.fullName}</span> ({selected.email}).
+              <span className="font-medium text-navy-900">{selected.userFullName}</span> ({selected.userEmail}).
             </p>
             <FormField
               id="reset-password"

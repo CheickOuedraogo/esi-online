@@ -16,7 +16,7 @@ import {
   reviewProposal,
 } from '@/lib/api-client/admin';
 import { useApiResource } from '@/lib/hooks/useApiResource';
-import { DOCUMENT_STATUS_LABEL, DOCUMENT_STATUS_VARIANT, formatDate, formatFileSize } from '@/lib/labels';
+import { DOCUMENT_STATUS_LABEL, DOCUMENT_STATUS_VARIANT, formatAcademicYear, formatDate, formatFileSize } from '@/lib/labels';
 
 export function AdminProposalDetailView({ id }: { id: string }) {
   const router = useRouter();
@@ -89,7 +89,7 @@ export function AdminProposalDetailView({ id }: { id: string }) {
   const metadata = [
     { label: 'Matière', value: item.subjectName },
     { label: 'Type', value: item.typeName },
-    { label: 'Année', value: item.academicYear ?? '—' },
+    { label: 'Année', value: formatAcademicYear(item.academicYear) },
     { label: 'Proposé par', value: item.uploaderName ?? '—' },
     { label: 'Taille', value: formatFileSize(item.sizeBytes) },
     { label: 'Déposé le', value: formatDate(item.createdAt) },

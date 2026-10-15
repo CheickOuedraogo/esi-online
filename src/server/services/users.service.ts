@@ -1,7 +1,7 @@
 // Logique de gestion des comptes utilisateurs par les administrateurs :
 // recherche, validation, refus, suspension, réinitialisation de mot de passe et suppression.
 
-import { eq, and, or, ilike, desc, sql, count } from "drizzle-orm";
+import { eq, and, or, ilike, desc, count } from "drizzle-orm";
 import { db } from "@/server/db/client";
 import {
   users,

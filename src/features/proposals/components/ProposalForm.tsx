@@ -11,9 +11,9 @@ import { ApiClientError } from '@/lib/api-client/client';
 import { createProposal, updateProposal } from '@/lib/api-client/proposals';
 import { getCatalog } from '@/lib/api-client/catalog';
 import { useApiResource } from '@/lib/hooks/useApiResource';
-import { ACADEMIC_YEARS } from '@/features/library';
+import { ACADEMIC_YEAR_OPTIONS } from '@/features/library';
 
-type FieldErrors = Partial<Record<'title' | 'subjectId' | 'typeId' | 'originalFilename', string>>;
+type FieldErrors = Partial<Record<'title' | 'subjectId' | 'typeId' | 'file', string>>;
 
 export function ProposalForm({ proposal }: { proposal?: Proposal }) {
   const router = useRouter();
@@ -36,8 +36,9 @@ export function ProposalForm({ proposal }: { proposal?: Proposal }) {
       description: String(formData.get('description') ?? '') || undefined,
       subjectId: String(formData.get('subjectId') ?? ''),
       typeId: String(formData.get('typeId') ?? ''),
-      academicYear: String(formData.get('academicYear') ?? '') || undefined,
-      originalFilename: file?.name ?? proposal?.originalFilename ?? '',
+      academicYear: formData.get('academicYear')
+        ? Number(formData.get('academicYear'))
+        : undefined,
     });
 
     if (!parsed.success) {
@@ -46,17 +47,21 @@ export function ProposalForm({ proposal }: { proposal?: Proposal }) {
         title: errors.title?.[0],
         subjectId: errors.subjectId?.[0],
         typeId: errors.typeId?.[0],
-        originalFilename: errors.originalFilename?.[0],
       });
+      return;
+    }
+
+    if (!editMode && !file) {
+      setFieldErrors({ file: 'Le fichier est requis.' });
       return;
     }
 
     try {
       if (proposal) {
-        await updateProposal(proposal.id, parsed.data);
+        await updateProposal(proposal.id, parsed.data, file);
         startTransition(() => router.push(`/proposals/${proposal.id}`));
       } else {
-        await createProposal(parsed.data);
+        await createProposal(parsed.data, file as File);
         startTransition(() => router.push('/proposals'));
       }
     } catch (error) {
@@ -125,11 +130,11 @@ export function ProposalForm({ proposal }: { proposal?: Proposal }) {
           </div>
 
           <FormField id="academicYear" label="Année académique">
-            <Select id="academicYear" name="academicYear" defaultValue={proposal?.academicYear ?? ''}>
+            <Select id="academicYear" name="academicYear" defaultValue={proposal?.academicYear != null ? String(proposal.academicYear) : ''}>
               <option value="">Non précisée</option>
-              {ACADEMIC_YEARS.map((year) => (
-                <option key={year} value={year}>
-                  {year}
+              {ACADEMIC_YEAR_OPTIONS.map((year) => (
+                <option key={year.value} value={year.value}>
+                  {year.label}
                 </option>
               ))}
             </Select>
@@ -139,7 +144,7 @@ export function ProposalForm({ proposal }: { proposal?: Proposal }) {
             id="file"
             label={editMode ? 'Remplacer le fichier (facultatif)' : 'Fichier'}
             required={!editMode}
-            error={fieldErrors.originalFilename}
+            error={fieldErrors.file}
             hint={
               editMode
                 ? `Fichier actuel : ${proposal?.originalFilename}. Laissez vide pour le conserver.`

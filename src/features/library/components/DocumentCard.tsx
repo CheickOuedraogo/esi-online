@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { Badge } from '@/components/ui';
 import type { DocumentItem } from '@/contracts/documents';
-import { VISIBILITY_LABEL, VISIBILITY_VARIANT, formatFileSize } from '@/lib/labels';
+import { VISIBILITY_LABEL, VISIBILITY_VARIANT, formatAcademicYear, formatFileSize } from '@/lib/labels';
 
 export interface DocumentCardProps {
   document: DocumentItem;
@@ -37,10 +37,10 @@ export function DocumentCard({ document }: DocumentCardProps) {
             <span>{document.levelName}</span>
           </>
         )}
-        {document.academicYear && (
+        {document.academicYear != null && (
           <>
             <span aria-hidden="true">·</span>
-            <span>{document.academicYear}</span>
+            <span>{formatAcademicYear(document.academicYear)}</span>
           </>
         )}
       </div>

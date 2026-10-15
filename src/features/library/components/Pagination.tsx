@@ -7,16 +7,18 @@ export interface PaginationProps {
   pageSize: number;
   total: number;
   onChange: (page: number) => void;
+  itemLabel?: string;
 }
 
-export function Pagination({ page, pageSize, total, onChange }: PaginationProps) {
+export function Pagination({ page, pageSize, total, onChange, itemLabel = 'document' }: PaginationProps) {
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   if (totalPages <= 1) return null;
 
   return (
     <div className="flex items-center justify-between gap-3">
       <p className="text-sm text-navy-500">
-        Page {page} sur {totalPages} · {total} document{total > 1 ? 's' : ''}
+        Page {page} sur {totalPages} · {total} {itemLabel}
+        {total > 1 ? 's' : ''}
       </p>
       <div className="flex gap-2">
         <Button

@@ -2,7 +2,7 @@
 
 // Gestion des utilisateurs : consultation des details, validation, rejet et desactivation.
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Alert,
   Badge,
@@ -20,6 +20,7 @@ import type { UserStatus } from '@/contracts/auth';
 import { ApiClientError } from '@/lib/api-client/client';
 import { listAdminUsers, updateUserStatus } from '@/lib/api-client/admin';
 import { useApiResource } from '@/lib/hooks/useApiResource';
+import { Pagination } from '@/features/library';
 import { ROLE_LABEL, USER_STATUS_LABEL, USER_STATUS_VARIANT, formatDate } from '@/lib/labels';
 
 function splitName(fullName: string): { lastName: string; firstName: string } {
@@ -31,9 +32,15 @@ function splitName(fullName: string): { lastName: string; firstName: string } {
 export function AdminUsersView() {
   const [q, setQ] = useState('');
   const [status, setStatus] = useState<'' | UserStatus>('');
+  const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    setPage(1);
+  }, [q, status]);
+
   const users = useApiResource(
-    () => listAdminUsers({ q: q || undefined, status: status || undefined }),
-    [q, status],
+    () => listAdminUsers({ q: q || undefined, status: status || undefined, page }),
+    [q, status, page],
   );
   const [busyId, setBusyId] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -105,14 +112,14 @@ export function AdminUsersView() {
                 </tr>
               </thead>
               <tbody>
-                {users.data?.length === 0 && (
+                {users.data?.items.length === 0 && (
                   <tr>
                     <td colSpan={4} className="px-4 py-8 text-center text-navy-500">
                       Aucun utilisateur ne correspond à la recherche.
                     </td>
                   </tr>
                 )}
-                {users.data?.map((user) => {
+                {users.data?.items.map((user) => {
                   const { lastName, firstName } = splitName(user.fullName);
                   return (
                     <tr key={user.id} className="border-b border-navy-50 last:border-0">
@@ -140,6 +147,16 @@ export function AdminUsersView() {
             </table>
           </div>
         </Card>
+      )}
+
+      {users.data && (
+        <Pagination
+          page={users.data.page}
+          pageSize={users.data.pageSize}
+          total={users.data.total}
+          onChange={setPage}
+          itemLabel="utilisateur"
+        />
       )}
 
       <Modal open={selected !== null} onClose={() => setSelected(null)} title="Détails de l’utilisateur">

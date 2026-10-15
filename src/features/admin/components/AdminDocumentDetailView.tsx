@@ -11,7 +11,7 @@ import { ApiClientError } from '@/lib/api-client/client';
 import { deleteDocument, getAdminDocument } from '@/lib/api-client/admin';
 import { documentFileUrl } from '@/lib/api-client/documents';
 import { useApiResource } from '@/lib/hooks/useApiResource';
-import { VISIBILITY_LABEL, VISIBILITY_VARIANT, formatDate, formatFileSize } from '@/lib/labels';
+import { VISIBILITY_LABEL, VISIBILITY_VARIANT, formatAcademicYear, formatDate, formatFileSize } from '@/lib/labels';
 
 export function AdminDocumentDetailView({ id }: { id: string }) {
   const router = useRouter();
@@ -57,7 +57,7 @@ export function AdminDocumentDetailView({ id }: { id: string }) {
     { label: 'Matière', value: item.subjectName },
     { label: 'Niveau', value: item.levelName ?? '—' },
     { label: 'Type', value: item.typeName },
-    { label: 'Année', value: item.academicYear ?? '—' },
+    { label: 'Année', value: formatAcademicYear(item.academicYear) },
     { label: 'Taille', value: formatFileSize(item.sizeBytes) },
     { label: 'Téléchargements', value: String(item.downloadCount) },
   ];

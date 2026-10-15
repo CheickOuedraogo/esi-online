@@ -7,7 +7,7 @@ import { Alert, Badge, Card, CardContent, PageHeader, Spinner } from '@/componen
 import { DocumentPreview } from '@/components/documents/DocumentPreview';
 import { getProposal, proposalFileUrl } from '@/lib/api-client/proposals';
 import { useApiResource } from '@/lib/hooks/useApiResource';
-import { DOCUMENT_STATUS_LABEL, DOCUMENT_STATUS_VARIANT, formatDate, formatFileSize } from '@/lib/labels';
+import { DOCUMENT_STATUS_LABEL, DOCUMENT_STATUS_VARIANT, formatAcademicYear, formatDate, formatFileSize } from '@/lib/labels';
 
 export function ProposalDetailView({ id }: { id: string }) {
   const resource = useApiResource(() => getProposal(id), [id]);
@@ -37,7 +37,7 @@ export function ProposalDetailView({ id }: { id: string }) {
     { label: 'Matière', value: proposal.subjectName },
     { label: 'Niveau', value: proposal.levelName ?? '—' },
     { label: 'Type', value: proposal.typeName },
-    { label: 'Année', value: proposal.academicYear ?? '—' },
+    { label: 'Année', value: formatAcademicYear(proposal.academicYear) },
     { label: 'Fichier', value: proposal.originalFilename },
     { label: 'Taille', value: formatFileSize(proposal.sizeBytes) },
   ];

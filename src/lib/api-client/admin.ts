@@ -14,15 +14,17 @@ import type {
 } from '@/contracts/admin';
 import type { Paginated } from '@/contracts/common';
 import type { DocumentItem, DocumentListQuery } from '@/contracts/documents';
-import type { CreateProposalInput, Proposal } from '@/contracts/proposals';
+import type { CreateProposalInput, Proposal, ProposalFilters } from '@/contracts/proposals';
 import { apiFetch, buildQuery } from './client';
 
 export function getAdminStats(): Promise<AdminStats> {
   return apiFetch<AdminStats>('/api/admin/stats');
 }
 
-export function listAdminUsers(params: Partial<AdminUserListQuery> = {}): Promise<AdminUser[]> {
-  return apiFetch<AdminUser[]>(`/api/admin/users${buildQuery(params)}`);
+export function listAdminUsers(
+  params: Partial<AdminUserListQuery> = {},
+): Promise<Paginated<AdminUser>> {
+  return apiFetch<Paginated<AdminUser>>(`/api/admin/users${buildQuery(params)}`);
 }
 
 export function createUser(input: CreateUserInput): Promise<AdminUser> {
@@ -59,8 +61,10 @@ export function updateAdminDocument(id: string, input: AdminContentInput): Promi
   return apiFetch<DocumentItem>(`/api/admin/documents/${id}`, { method: 'PATCH', body: input });
 }
 
-export function listAdminProposals(): Promise<Proposal[]> {
-  return apiFetch<Proposal[]>('/api/admin/proposals');
+export function listAdminProposals(
+  params: Partial<ProposalFilters> = {},
+): Promise<Paginated<Proposal>> {
+  return apiFetch<Paginated<Proposal>>(`/api/admin/proposals${buildQuery(params)}`);
 }
 
 export function createAdminProposal(input: CreateProposalInput): Promise<Proposal> {

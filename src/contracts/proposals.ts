@@ -36,6 +36,8 @@ export const proposalSchema = z.object({
   sizeBytes: z.number(),
   originalFilename: z.string(),
   rejectionReason: z.string().nullable(),
+  uploaderName: z.string().nullable(),
+  levelName: z.string().nullable(),
   contentAvailable: z.boolean(),
   fileExpiresAt: z.string().datetime(),
   createdAt: z.string().datetime(),

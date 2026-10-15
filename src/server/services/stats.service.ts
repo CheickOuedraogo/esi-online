@@ -19,6 +19,7 @@ export const statsService = {
       pendingUsersRes,
       pendingProposalsRes,
       pendingResetRequestsRes,
+      totalUsersRes,
       totalStudentsRes,
       totalDocsRes,
       totalDownloadsRes,
@@ -36,6 +37,7 @@ export const statsService = {
         .select({ count: count() })
         .from(passwordResetRequests)
         .where(eq(passwordResetRequests.status, "pending")),
+      db.select({ count: count() }).from(users),
       db
         .select({ count: count() })
         .from(users)
@@ -96,6 +98,7 @@ export const statsService = {
       pendingUsersCount: pendingUsersRes[0]?.count ?? 0,
       pendingProposalsCount: pendingProposalsRes[0]?.count ?? 0,
       pendingResetRequestsCount: pendingResetRequestsRes[0]?.count ?? 0,
+      totalUsersCount: totalUsersRes[0]?.count ?? 0,
       totalStudentsCount: totalStudentsRes[0]?.count ?? 0,
       totalDocumentsCount: totalDocsRes[0]?.count ?? 0,
       totalDownloadsCount: Number(totalDownloadsRes[0]?.total ?? 0),

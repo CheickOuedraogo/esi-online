@@ -121,6 +121,7 @@ export const adminStatsSchema = z.object({
   pendingUsersCount: z.number(),
   pendingProposalsCount: z.number(),
   pendingResetRequestsCount: z.number(),
+  totalUsersCount: z.number(),
   totalStudentsCount: z.number(),
   totalDocumentsCount: z.number(),
   totalDownloadsCount: z.number(),

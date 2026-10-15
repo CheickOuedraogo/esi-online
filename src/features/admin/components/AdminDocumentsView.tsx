@@ -23,6 +23,7 @@ import { useApiResource } from '@/lib/hooks/useApiResource';
 import {
   VISIBILITY_LABEL,
   VISIBILITY_VARIANT,
+  formatAcademicYear,
   formatDate,
   formatFileSize,
 } from '@/lib/labels';
@@ -159,7 +160,7 @@ export function AdminDocumentsView() {
               </div>
               <div>
                 <dt className="text-xs uppercase tracking-wide text-navy-400">Année</dt>
-                <dd className="text-sm text-navy-900">{selected.academicYear ?? '—'}</dd>
+                <dd className="text-sm text-navy-900">{formatAcademicYear(selected.academicYear)}</dd>
               </div>
               <div>
                 <dt className="text-xs uppercase tracking-wide text-navy-400">Taille</dt>

@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
-import { MswProvider } from '@/lib/mocks/MswProvider';
 import './globals.css';
 
 const inter = Inter({
@@ -30,9 +29,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr" className={inter.variable}>
-      <body className="min-h-dvh font-sans">
-        <MswProvider>{children}</MswProvider>
-      </body>
+      <body className="min-h-dvh font-sans">{children}</body>
     </html>
   );
 }

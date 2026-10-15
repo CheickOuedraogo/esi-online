@@ -1,7 +1,6 @@
 // Client fetch type : URL de base, gestion des erreurs et deserialisation des reponses conformes aux contrats.
 
 import { isApiErrorResponse, type ApiError, type ApiErrorCode } from '@/contracts/errors';
-import { mocksReady } from '@/lib/mocks/ready';
 
 export class ApiClientError extends Error {
   readonly code: ApiErrorCode;
@@ -23,10 +22,6 @@ export interface ApiFetchOptions extends Omit<RequestInit, 'body'> {
 
 export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): Promise<T> {
   const { body, headers, ...init } = options;
-
-  if (typeof window !== 'undefined') {
-    await mocksReady;
-  }
 
   const response = await fetch(path, {
     ...init,
@@ -71,11 +66,37 @@ export interface DownloadResult {
   filename: string | null;
 }
 
-export async function apiDownload(path: string): Promise<DownloadResult> {
-  if (typeof window !== 'undefined') {
-    await mocksReady;
+// Envoi multipart/form-data (upload de fichier). Le Content-Type est fixé par
+// le navigateur pour inclure la frontière (boundary).
+export async function apiUpload<T>(
+  path: string,
+  formData: FormData,
+  options: { method?: 'POST' | 'PATCH' | 'PUT' } = {},
+): Promise<T> {
+  const response = await fetch(path, {
+    method: options.method ?? 'POST',
+    credentials: 'same-origin',
+    headers: { Accept: 'application/json' },
+    body: formData,
+  });
+
+  const isJson = response.headers.get('content-type')?.includes('application/json') ?? false;
+  const payload: unknown = isJson ? await response.json().catch(() => undefined) : undefined;
+
+  if (!response.ok) {
+    if (isApiErrorResponse(payload)) {
+      throw new ApiClientError(payload.error, response.status);
+    }
+    throw new ApiClientError(
+      { code: 'INTERNAL_ERROR', message: 'Une erreur inattendue est survenue.' },
+      response.status,
+    );
   }
 
+  return payload as T;
+}
+
+export async function apiDownload(path: string): Promise<DownloadResult> {
   const response = await fetch(path, { credentials: 'same-origin', headers: { Accept: '*/*' } });
 
   if (!response.ok) {

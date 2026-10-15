@@ -31,7 +31,7 @@ export function LibraryView() {
         levelId: filters.levelId || undefined,
         subjectId: filters.subjectId || undefined,
         typeId: filters.typeId || undefined,
-        year: filters.year || undefined,
+        year: filters.year ? Number(filters.year) : undefined,
         sort: filters.sort,
         page: filters.page,
         pageSize: 12,

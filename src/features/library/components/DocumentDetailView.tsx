@@ -11,6 +11,7 @@ import { useApiResource } from '@/lib/hooks/useApiResource';
 import {
   VISIBILITY_LABEL,
   VISIBILITY_VARIANT,
+  formatAcademicYear,
   formatDate,
   formatFileSize,
 } from '@/lib/labels';
@@ -68,7 +69,7 @@ export function DocumentDetailView({ id }: DocumentDetailViewProps) {
     { label: 'Matière', value: item.subjectName },
     { label: 'Niveau', value: item.levelName ?? '—' },
     { label: 'Type', value: item.typeName },
-    { label: 'Année', value: item.academicYear ?? '—' },
+    { label: 'Année', value: formatAcademicYear(item.academicYear) },
     { label: 'Taille', value: formatFileSize(item.sizeBytes) },
   ];
 

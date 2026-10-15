@@ -9,6 +9,8 @@ import {
   subjects,
   documentTypes,
   rejections,
+  users,
+  levels,
 } from "@/server/db/schema";
 import {
   CreateProposal,
@@ -95,37 +97,7 @@ export const proposalsService = {
       })
       .returning();
 
-    const [subj] = await db
-      .select({ name: subjects.name })
-      .from(subjects)
-      .where(eq(subjects.id, input.subjectId))
-      .limit(1);
-
-    const [dtype] = await db
-      .select({ name: documentTypes.name })
-      .from(documentTypes)
-      .where(eq(documentTypes.id, input.typeId))
-      .limit(1);
-
-    return {
-      id: created.id,
-      title: created.title,
-      description: created.description,
-      subjectId: created.subjectId,
-      subjectName: subj?.name ?? "",
-      typeId: created.typeId,
-      typeName: dtype?.name ?? "",
-      academicYear: created.academicYear,
-      status: created.status,
-      visibility: created.visibility,
-      mimeType: created.mimeType,
-      sizeBytes: created.sizeBytes,
-      originalFilename: created.originalFilename,
-      rejectionReason: null,
-      ...retentionFields(created.status, created.createdAt),
-      createdAt: created.createdAt.toISOString(),
-      publishedAt: null,
-    };
+    return this.getProposal(created.id, userId, false);
   },
 
   // ── Mes propositions (étudiant connecté) ──────────────────────────────────
@@ -137,6 +109,7 @@ export const proposalsService = {
         description: documents.description,
         subjectId: documents.subjectId,
         subjectName: subjects.name,
+        levelName: levels.name,
         typeId: documents.typeId,
         typeName: documentTypes.name,
         academicYear: documents.academicYear,
@@ -145,6 +118,7 @@ export const proposalsService = {
         mimeType: documents.mimeType,
         sizeBytes: documents.sizeBytes,
         originalFilename: documents.originalFilename,
+        uploaderName: users.fullName,
         createdAt: documents.createdAt,
         publishedAt: documents.publishedAt,
         rejectionReason: rejections.reason,
@@ -152,6 +126,8 @@ export const proposalsService = {
       .from(documents)
       .innerJoin(subjects, eq(documents.subjectId, subjects.id))
       .innerJoin(documentTypes, eq(documents.typeId, documentTypes.id))
+      .leftJoin(levels, eq(subjects.levelId, levels.id))
+      .leftJoin(users, eq(documents.uploadedBy, users.id))
       .leftJoin(
         rejections,
         and(
@@ -177,6 +153,8 @@ export const proposalsService = {
       sizeBytes: r.sizeBytes,
       originalFilename: r.originalFilename,
       rejectionReason: r.rejectionReason,
+      uploaderName: r.uploaderName ?? null,
+      levelName: r.levelName ?? null,
       ...retentionFields(r.status, r.createdAt),
       createdAt: r.createdAt.toISOString(),
       publishedAt: r.publishedAt ? r.publishedAt.toISOString() : null,
@@ -260,22 +238,26 @@ export const proposalsService = {
           visibility: documents.visibility,
           mimeType: documents.mimeType,
           sizeBytes: documents.sizeBytes,
-          originalFilename: documents.originalFilename,
-          createdAt: documents.createdAt,
-          publishedAt: documents.publishedAt,
-          rejectionReason: rejections.reason,
-        })
-        .from(documents)
-        .innerJoin(subjects, eq(documents.subjectId, subjects.id))
-        .innerJoin(documentTypes, eq(documents.typeId, documentTypes.id))
-        .leftJoin(
-          rejections,
-          and(
-            eq(rejections.targetId, documents.id),
-            eq(rejections.targetType, "document")
-          )
+        originalFilename: documents.originalFilename,
+        uploaderName: users.fullName,
+        createdAt: documents.createdAt,
+        publishedAt: documents.publishedAt,
+        rejectionReason: rejections.reason,
+        levelName: levels.name,
+      })
+      .from(documents)
+      .innerJoin(subjects, eq(documents.subjectId, subjects.id))
+      .innerJoin(documentTypes, eq(documents.typeId, documentTypes.id))
+      .leftJoin(levels, eq(subjects.levelId, levels.id))
+      .leftJoin(users, eq(documents.uploadedBy, users.id))
+      .leftJoin(
+        rejections,
+        and(
+          eq(rejections.targetId, documents.id),
+          eq(rejections.targetType, "document")
         )
-        .where(condition)
+      )
+      .where(condition)
         .orderBy(desc(documents.createdAt))
         .limit(pageSize)
         .offset(offset),
@@ -298,6 +280,8 @@ export const proposalsService = {
       sizeBytes: r.sizeBytes,
       originalFilename: r.originalFilename,
       rejectionReason: r.rejectionReason,
+      uploaderName: r.uploaderName ?? null,
+      levelName: r.levelName ?? null,
       ...retentionFields(r.status, r.createdAt),
       createdAt: r.createdAt.toISOString(),
       publishedAt: r.publishedAt ? r.publishedAt.toISOString() : null,
@@ -389,6 +373,7 @@ export const proposalsService = {
         description: documents.description,
         subjectId: documents.subjectId,
         subjectName: subjects.name,
+        levelName: levels.name,
         typeId: documents.typeId,
         typeName: documentTypes.name,
         academicYear: documents.academicYear,
@@ -397,6 +382,7 @@ export const proposalsService = {
         mimeType: documents.mimeType,
         sizeBytes: documents.sizeBytes,
         originalFilename: documents.originalFilename,
+        uploaderName: users.fullName,
         createdAt: documents.createdAt,
         publishedAt: documents.publishedAt,
         rejectionReason: rejections.reason,
@@ -404,6 +390,8 @@ export const proposalsService = {
       .from(documents)
       .innerJoin(subjects, eq(documents.subjectId, subjects.id))
       .innerJoin(documentTypes, eq(documents.typeId, documentTypes.id))
+      .leftJoin(levels, eq(subjects.levelId, levels.id))
+      .leftJoin(users, eq(documents.uploadedBy, users.id))
       .leftJoin(
         rejections,
         and(
@@ -429,6 +417,8 @@ export const proposalsService = {
       sizeBytes: updated.sizeBytes,
       originalFilename: updated.originalFilename,
       rejectionReason: updated.rejectionReason,
+      uploaderName: updated.uploaderName ?? null,
+      levelName: updated.levelName ?? null,
       ...retentionFields(updated.status, updated.createdAt),
       createdAt: updated.createdAt.toISOString(),
       publishedAt: updated.publishedAt ? updated.publishedAt.toISOString() : null,
@@ -457,6 +447,8 @@ export const proposalsService = {
         sizeBytes: documents.sizeBytes,
         originalFilename: documents.originalFilename,
         uploadedBy: documents.uploadedBy,
+        uploaderName: users.fullName,
+        levelName: levels.name,
         createdAt: documents.createdAt,
         publishedAt: documents.publishedAt,
         rejectionReason: rejections.reason,
@@ -464,6 +456,8 @@ export const proposalsService = {
       .from(documents)
       .innerJoin(subjects, eq(documents.subjectId, subjects.id))
       .innerJoin(documentTypes, eq(documents.typeId, documentTypes.id))
+      .leftJoin(levels, eq(subjects.levelId, levels.id))
+      .leftJoin(users, eq(documents.uploadedBy, users.id))
       .leftJoin(
         rejections,
         and(
@@ -499,6 +493,8 @@ export const proposalsService = {
       sizeBytes: item.sizeBytes,
       originalFilename: item.originalFilename,
       rejectionReason: item.rejectionReason,
+      uploaderName: item.uploaderName ?? null,
+      levelName: item.levelName ?? null,
       ...retentionFields(item.status, item.createdAt),
       createdAt: item.createdAt.toISOString(),
       publishedAt: item.publishedAt ? item.publishedAt.toISOString() : null,

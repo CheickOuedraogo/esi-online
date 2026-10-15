@@ -21,16 +21,19 @@ import type { Proposal } from '@/contracts/proposals';
 import { ApiClientError } from '@/lib/api-client/client';
 import { listAdminProposals, reviewProposal } from '@/lib/api-client/admin';
 import { useApiResource } from '@/lib/hooks/useApiResource';
+import { Pagination } from '@/features/library';
 import {
   DOCUMENT_STATUS_LABEL,
   DOCUMENT_STATUS_VARIANT,
   VISIBILITY_LABEL,
+  formatAcademicYear,
   formatDate,
   formatFileSize,
 } from '@/lib/labels';
 
 export function AdminProposalsView() {
-  const proposals = useApiResource(() => listAdminProposals(), []);
+  const [page, setPage] = useState(1);
+  const proposals = useApiResource(() => listAdminProposals({ page }), [page]);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -76,7 +79,7 @@ export function AdminProposalsView() {
     }
   }
 
-  const pendingCount = proposals.data?.filter((proposal) => proposal.status === 'pending').length ?? 0;
+  const pendingCount = proposals.data?.items.filter((proposal) => proposal.status === 'pending').length ?? 0;
 
   return (
     <div className="space-y-6">
@@ -99,7 +102,7 @@ export function AdminProposalsView() {
         </div>
       ) : proposals.error ? (
         <Alert variant="error">{proposals.error}</Alert>
-      ) : !proposals.data || proposals.data.length === 0 ? (
+      ) : !proposals.data || proposals.data.items.length === 0 ? (
         <EmptyState
           title="Aucune proposition"
           description="Les documents proposés par les étudiants apparaîtront ici."
@@ -107,7 +110,7 @@ export function AdminProposalsView() {
       ) : (
         <Card>
           <ul className="divide-y divide-navy-50">
-            {proposals.data.map((proposal) => (
+            {proposals.data.items.map((proposal) => (
               <li
                 key={proposal.id}
                 className="flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3 sm:px-5"
@@ -130,6 +133,16 @@ export function AdminProposalsView() {
             ))}
           </ul>
         </Card>
+      )}
+
+      {proposals.data && (
+        <Pagination
+          page={proposals.data.page}
+          pageSize={proposals.data.pageSize}
+          total={proposals.data.total}
+          onChange={setPage}
+          itemLabel="proposition"
+        />
       )}
 
       <Modal open={selected !== null} onClose={() => setSelected(null)} title="Détails de la proposition">
@@ -161,7 +174,7 @@ export function AdminProposalsView() {
               </div>
               <div>
                 <dt className="text-xs uppercase tracking-wide text-navy-400">Année</dt>
-                <dd className="text-sm text-navy-900">{selected.academicYear ?? '—'}</dd>
+                <dd className="text-sm text-navy-900">{formatAcademicYear(selected.academicYear)}</dd>
               </div>
               <div>
                 <dt className="text-xs uppercase tracking-wide text-navy-400">Proposé par</dt>

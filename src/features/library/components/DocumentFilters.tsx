@@ -26,6 +26,12 @@ export const EMPTY_FILTERS: LibraryFilters = {
 
 export const ACADEMIC_YEARS = ['2025-2026', '2024-2025', '2023-2024'] as const;
 
+// L'année académique est stockée et transmise à l'API comme année de début (ex. 2025).
+export const ACADEMIC_YEAR_OPTIONS = ACADEMIC_YEARS.map((label) => ({
+  value: String(Number(label.slice(0, 4))),
+  label,
+}));
+
 const SORTS: Array<{ value: Sort; label: 'Plus récents' | 'Plus téléchargés' | 'Titre (A→Z)' }> = [
   { value: 'recent', label: 'Plus récents' },
   { value: 'popular', label: 'Plus téléchargés' },
@@ -93,9 +99,9 @@ export function DocumentFilters({ catalog, value, onChange, onReset }: DocumentF
         onChange={(event) => onChange({ year: event.target.value, page: 1 })}
       >
         <option value="">Toutes les années</option>
-        {ACADEMIC_YEARS.map((year) => (
-          <option key={year} value={year}>
-            {year}
+        {ACADEMIC_YEAR_OPTIONS.map((year) => (
+          <option key={year.value} value={year.value}>
+            {year.label}
           </option>
         ))}
       </Select>

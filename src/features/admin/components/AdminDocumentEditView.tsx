@@ -47,7 +47,7 @@ export function AdminDocumentEditView({ id }: { id: string }) {
           description: item.description ?? '',
           subjectId: item.subjectId,
           typeId: item.typeId,
-          academicYear: item.academicYear ?? '',
+          academicYear: item.academicYear ?? null,
           visibility: item.visibility,
         }}
         submitLabel="Enregistrer"

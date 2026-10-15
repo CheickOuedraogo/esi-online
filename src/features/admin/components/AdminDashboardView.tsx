@@ -7,10 +7,15 @@ import { Alert, Card, CardContent, PageHeader, Spinner } from '@/components/ui';
 import { getAdminStats } from '@/lib/api-client/admin';
 import { useApiResource } from '@/lib/hooks/useApiResource';
 
-const STAT_LABELS: Array<{ key: 'pendingUsers' | 'pendingProposals' | 'pendingResetRequests'; label: string; href: string; accent?: boolean }> = [
-  { key: 'pendingUsers', label: 'Comptes en attente', href: '/admin/users', accent: true },
-  { key: 'pendingProposals', label: 'Propositions à modérer', href: '/admin/proposals', accent: true },
-  { key: 'pendingResetRequests', label: 'Réinitialisations à traiter', href: '/admin/reset-requests', accent: true },
+const STAT_LABELS: Array<{
+  key: 'pendingUsersCount' | 'pendingProposalsCount' | 'pendingResetRequestsCount';
+  label: string;
+  href: string;
+  accent?: boolean;
+}> = [
+  { key: 'pendingUsersCount', label: 'Comptes en attente', href: '/admin/users', accent: true },
+  { key: 'pendingProposalsCount', label: 'Propositions à modérer', href: '/admin/proposals', accent: true },
+  { key: 'pendingResetRequestsCount', label: 'Réinitialisations à traiter', href: '/admin/reset-requests', accent: true },
 ];
 
 export function AdminDashboardView() {
@@ -30,9 +35,9 @@ export function AdminDashboardView() {
 
   const data = stats.data;
   const metrics = [
-    { label: 'Documents publiés', value: data.totalDocuments, href: '/admin/documents' },
-    { label: 'Utilisateurs', value: data.totalUsers, href: '/admin/users' },
-    { label: 'Téléchargements', value: data.totalDownloads, href: '/admin/documents' },
+    { label: 'Documents publiés', value: data.totalDocumentsCount, href: '/admin/documents' },
+    { label: 'Utilisateurs', value: data.totalUsersCount, href: '/admin/users' },
+    { label: 'Téléchargements', value: data.totalDownloadsCount, href: '/admin/documents' },
   ];
 
   return (
@@ -69,11 +74,11 @@ export function AdminDashboardView() {
       <Card>
         <CardContent className="py-6">
           <h2 className="text-base font-semibold text-navy-900">Documents les plus téléchargés</h2>
-          {data.topDocuments.length === 0 ? (
+          {data.topDownloadedDocuments.length === 0 ? (
             <p className="mt-3 text-sm text-navy-500">Aucune donnée disponible.</p>
           ) : (
             <ol className="mt-4 space-y-2">
-              {data.topDocuments.map((document, index) => (
+              {data.topDownloadedDocuments.map((document, index) => (
                 <li
                   key={document.id}
                   className="flex items-center justify-between gap-3 rounded-lg border border-navy-50 px-3 py-2.5"

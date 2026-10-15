@@ -60,3 +60,9 @@ export function formatFileSize(bytes: number): string {
   if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} Ko`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} Mo`;
 }
+
+// Année académique stockée comme année de début (ex. 2025) → plage lisible (2025-2026).
+export function formatAcademicYear(year: number | null | undefined): string {
+  if (year == null) return '—';
+  return `${year}-${year + 1}`;
+}
