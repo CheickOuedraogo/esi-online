@@ -1,49 +1,112 @@
-// Contrats des documents : requetes de liste/filtres, resumes, detail.
+// Contrats des documents : requêtes de liste/filtres, résumés, détail,
+// création/édition, téléchargement.
 
-import { z } from 'zod';
-import { paginationQuerySchema, sortSchema, uuidSchema } from './common';
+import { z } from "zod";
+import { paginationSchema, documentSortSchema, searchQuerySchema } from "./common";
 
-export const visibilitySchema = z.enum(['public', 'students']);
-export type Visibility = z.infer<typeof visibilitySchema>;
+// ── Énumérations ────────────────────────────────────────────────────────────
 
-export const documentStatusSchema = z.enum(['pending', 'approved', 'rejected']);
-export type DocumentStatus = z.infer<typeof documentStatusSchema>;
+export const Visibility = { PUBLIC: "public", STUDENTS: "students" } as const;
+export type Visibility = (typeof Visibility)[keyof typeof Visibility];
 
-export const documentSchema = z.object({
-  id: uuidSchema,
+export const DocumentStatus = {
+  PENDING: "pending",
+  APPROVED: "approved",
+  REJECTED: "rejected",
+} as const;
+export type DocumentStatus =
+  (typeof DocumentStatus)[keyof typeof DocumentStatus];
+
+export const visibilitySchema = z.enum(["public", "students"]);
+export const documentStatusSchema = z.enum(["pending", "approved", "rejected"]);
+
+// ── Filtres de liste (publique et étudiante) ────────────────────────────────
+
+export const documentFiltersSchema = paginationSchema
+  .merge(searchQuerySchema)
+  .extend({
+    levelId: z.string().uuid().optional(),
+    programId: z.string().uuid().optional(),
+    subjectId: z.string().uuid().optional(),
+    typeId: z.string().uuid().optional(),
+    year: z.coerce.number().int().min(2000).max(2100).optional(),
+    sort: documentSortSchema,
+  });
+
+export type DocumentFilters = z.infer<typeof documentFiltersSchema>;
+
+// ── Filtres admin (tous statuts et visibilités) ─────────────────────────────
+
+export const adminDocumentFiltersSchema = documentFiltersSchema.extend({
+  status: z.enum(["pending", "approved", "rejected"]).optional(),
+  visibility: z.enum(["public", "students"]).optional(),
+});
+
+export type AdminDocumentFilters = z.infer<typeof adminDocumentFiltersSchema>;
+
+// ── Résumé d'un document (dans les listes) ──────────────────────────────────
+
+export const documentSummarySchema = z.object({
+  id: z.string().uuid(),
   title: z.string(),
   description: z.string().nullable(),
-  subjectId: uuidSchema,
+  subjectId: z.string().uuid(),
   subjectName: z.string(),
-  levelId: uuidSchema.nullable(),
-  levelName: z.string().nullable(),
-  programId: uuidSchema.nullable(),
-  programName: z.string().nullable(),
-  typeId: uuidSchema,
+  typeId: z.string().uuid(),
   typeName: z.string(),
-  academicYear: z.string().nullable(),
-  visibility: visibilitySchema,
-  status: documentStatusSchema,
-  originalFilename: z.string(),
+  academicYear: z.number().nullable(),
+  visibility: z.enum(["public", "students"]),
+  status: z.enum(["pending", "approved", "rejected"]),
   mimeType: z.string(),
   sizeBytes: z.number(),
-  uploadedBy: uuidSchema.nullable(),
-  uploaderName: z.string().nullable(),
   downloadCount: z.number(),
-  createdAt: z.string(),
-  publishedAt: z.string().nullable(),
+  createdAt: z.string().datetime(),
+  publishedAt: z.string().datetime().nullable(),
 });
 
-export type DocumentItem = z.infer<typeof documentSchema>;
+export type DocumentSummary = z.infer<typeof documentSummarySchema>;
 
-export const documentListQuerySchema = paginationQuerySchema.extend({
-  q: z.string().trim().optional(),
-  levelId: uuidSchema.optional(),
-  programId: uuidSchema.optional(),
-  subjectId: uuidSchema.optional(),
-  typeId: uuidSchema.optional(),
-  year: z.string().trim().optional(),
-  sort: sortSchema,
+// ── Détail d'un document ────────────────────────────────────────────────────
+
+export const documentDetailSchema = documentSummarySchema.extend({
+  originalFilename: z.string(),
+  uploadedBy: z.string().uuid().nullable(),
+  uploaderName: z.string().nullable(),
+  levelId: z.string().uuid().nullable(),
+  levelName: z.string().nullable(),
+  programId: z.string().uuid().nullable(),
+  programName: z.string().nullable(),
 });
 
-export type DocumentListQuery = z.infer<typeof documentListQuerySchema>;
+export type DocumentDetail = z.infer<typeof documentDetailSchema>;
+
+// ── Création admin ──────────────────────────────────────────────────────────
+
+export const createDocumentSchema = z.object({
+  title: z.string().trim().min(1, "Titre requis").max(255),
+  description: z.string().trim().max(2000).optional(),
+  subjectId: z.string().uuid("Matière invalide"),
+  typeId: z.string().uuid("Type invalide"),
+  academicYear: z.coerce.number().int().min(2000).max(2100).optional(),
+  visibility: z.enum(["public", "students"]).default("students"),
+});
+
+export type CreateDocument = z.infer<typeof createDocumentSchema>;
+
+// ── Modification admin ──────────────────────────────────────────────────────
+
+export const updateDocumentSchema = z.object({
+  title: z.string().trim().min(1).max(255).optional(),
+  description: z.string().trim().max(2000).optional(),
+  subjectId: z.string().uuid().optional(),
+  typeId: z.string().uuid().optional(),
+  academicYear: z.coerce.number().int().min(2000).max(2100).nullable().optional(),
+  visibility: z.enum(["public", "students"]).optional(),
+});
+
+export type UpdateDocument = z.infer<typeof updateDocumentSchema>;
+
+// ── Alias de compatibilité (front) ──────────────────────────────────────────
+
+export type DocumentItem = DocumentDetail;
+export type DocumentListQuery = DocumentFilters;

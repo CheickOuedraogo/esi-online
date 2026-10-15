@@ -1,13 +1,105 @@
-// Contrats d'authentification : inscription, connexion, demande de reinitialisation, changement de mot de passe, utilisateur courant.
+// Contrats d'authentification : inscription, connexion, demande de réinitialisation,
+// changement de mot de passe, utilisateur courant.
 
-import { z } from 'zod';
-import { uuidSchema } from './common';
+import { z } from "zod";
 
-export const userRoleSchema = z.enum(['student', 'admin']);
-export type UserRole = z.infer<typeof userRoleSchema>;
+// ── Énumérations ────────────────────────────────────────────────────────────
 
-export const userStatusSchema = z.enum(['pending', 'validated', 'rejected', 'suspended']);
-export type UserStatus = z.infer<typeof userStatusSchema>;
+export const Role = { STUDENT: "student", ADMIN: "admin" } as const;
+export type Role = (typeof Role)[keyof typeof Role];
+
+export const UserStatus = {
+  PENDING: "pending",
+  VALIDATED: "validated",
+  REJECTED: "rejected",
+  SUSPENDED: "suspended",
+} as const;
+export type UserStatus = (typeof UserStatus)[keyof typeof UserStatus];
+
+// ── Inscription ─────────────────────────────────────────────────────────────
+
+export const registerInputSchema = z.object({
+  fullName: z
+    .string()
+    .trim()
+    .min(2, "Le nom doit contenir au moins 2 caractères")
+    .max(100),
+  email: z.string().trim().email("Email invalide").toLowerCase(),
+  password: z
+    .string()
+    .min(8, "Le mot de passe doit contenir au moins 8 caractères")
+    .max(128),
+  programId: z.string().uuid("Filière invalide"),
+  levelId: z.string().uuid("Niveau invalide"),
+});
+
+export type RegisterInput = z.infer<typeof registerInputSchema>;
+
+// ── Connexion ───────────────────────────────────────────────────────────────
+
+export const loginInputSchema = z.object({
+  email: z.string().trim().email("Email invalide").toLowerCase(),
+  password: z.string().min(1, "Mot de passe requis"),
+});
+
+export type LoginInput = z.infer<typeof loginInputSchema>;
+
+// ── Changement de mot de passe ──────────────────────────────────────────────
+
+export const changePasswordInputSchema = z.object({
+  currentPassword: z.string().min(1, "Mot de passe actuel requis"),
+  newPassword: z
+    .string()
+    .min(8, "Le nouveau mot de passe doit contenir au moins 8 caractères")
+    .max(128),
+});
+
+export type ChangePasswordInput = z.infer<typeof changePasswordInputSchema>;
+
+// ── Demande de réinitialisation ─────────────────────────────────────────────
+
+export const requestResetInputSchema = z.object({
+  email: z.string().trim().email("Email invalide").toLowerCase(),
+});
+
+export type RequestResetInput = z.infer<typeof requestResetInputSchema>;
+
+// ── Utilisateur public (réponse) ────────────────────────────────────────────
+
+export const userPublicSchema = z.object({
+  id: z.string().uuid(),
+  fullName: z.string(),
+  email: z.string().email(),
+  role: z.enum(["student", "admin"]),
+  status: z.enum(["pending", "validated", "rejected", "suspended"]),
+  mustChangePassword: z.boolean(),
+  programId: z.string().uuid().nullable(),
+  levelId: z.string().uuid().nullable(),
+  createdAt: z.string().datetime(),
+});
+
+export type UserPublic = z.infer<typeof userPublicSchema>;
+
+// ── Réponse de connexion ────────────────────────────────────────────────────
+// La route renvoie à la fois les champs à la racine et l'objet complet `user`.
+
+export const loginResponseSchema = userPublicSchema.extend({
+  user: userPublicSchema,
+});
+
+export type LoginResponse = z.infer<typeof loginResponseSchema>;
+
+// ── Alias de compatibilité (front) ──────────────────────────────────────────
+
+export const userRoleSchema = z.enum(["student", "admin"]);
+export type UserRole = Role;
+
+export const userStatusSchema = z.enum([
+  "pending",
+  "validated",
+  "rejected",
+  "suspended",
+]);
 
 export const emailSchema = z
   .string()
@@ -15,65 +107,5 @@ export const emailSchema = z
   .toLowerCase()
   .email("Adresse e-mail invalide.");
 
-export const registerInputSchema = z.object({
-  fullName: z
-    .string()
-    .trim()
-    .min(2, 'Le nom doit contenir au moins 2 caracteres.')
-    .max(120, 'Le nom est trop long.'),
-  email: emailSchema,
-  password: z
-    .string()
-    .min(8, 'Le mot de passe doit contenir au moins 8 caracteres.')
-    .max(200, 'Le mot de passe est trop long.'),
-  programId: uuidSchema,
-  levelId: uuidSchema,
-});
-
-export type RegisterInput = z.infer<typeof registerInputSchema>;
-
-export const loginInputSchema = z.object({
-  email: emailSchema,
-  password: z.string().min(1, 'Le mot de passe est requis.'),
-});
-
-export type LoginInput = z.infer<typeof loginInputSchema>;
-
-export const requestResetInputSchema = z.object({
-  email: emailSchema,
-});
-
-export type RequestResetInput = z.infer<typeof requestResetInputSchema>;
-
-export const changePasswordInputSchema = z.object({
-  currentPassword: z.string().min(1, 'Le mot de passe actuel est requis.'),
-  newPassword: z
-    .string()
-    .min(8, 'Le nouveau mot de passe doit contenir au moins 8 caracteres.')
-    .max(200, 'Le mot de passe est trop long.'),
-});
-
-export type ChangePasswordInput = z.infer<typeof changePasswordInputSchema>;
-
-export const authUserSchema = z.object({
-  id: uuidSchema,
-  fullName: z.string(),
-  email: z.string(),
-  role: userRoleSchema,
-  status: userStatusSchema,
-  mustChangePassword: z.boolean(),
-  programId: uuidSchema.nullable(),
-  levelId: uuidSchema.nullable(),
-  createdAt: z.string(),
-});
-
-export type AuthUser = z.infer<typeof authUserSchema>;
-
-export const loginResponseSchema = z.object({
-  id: uuidSchema,
-  role: userRoleSchema,
-  status: userStatusSchema,
-  mustChangePassword: z.boolean(),
-});
-
-export type LoginResponse = z.infer<typeof loginResponseSchema>;
+export const authUserSchema = userPublicSchema;
+export type AuthUser = UserPublic;

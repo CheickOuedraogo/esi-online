@@ -8,7 +8,10 @@
     "start": "next start",
     "lint": "eslint .",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate"
+    "db:migrate": "drizzle-kit migrate",
+    "db:seed": "tsx src/server/db/seed.ts",
+    "storage:check": "tsx scripts/check-storage-consistency.ts",
+    "test": "tsx --env-file=.env --test tests/back/auth.test.ts tests/back/storage.test.ts tests/back/contracts.test.ts"
   },
   "dependencies": {
     "argon2": "^0.41.1",
@@ -21,21 +24,17 @@
   },
   "devDependencies": {
     "@types/node": "^26.6.5",
+    "@types/pg": "^8.11.10",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "autoprefixer": "^10.6.1",
     "drizzle-kit": "^0.28.0",
     "eslint": "^9.13.0",
     "eslint-config-next": "^15.5.27",
-    "msw": "^2.6.0",
     "prettier": "^3.3.3",
     "tailwindcss": "^3.4.14",
+    "tsx": "^4.23.15",
     "typescript": "^5.6.3",
     "typescript-eslint": "^8.71.1"
-  },
-  "msw": {
-    "workerDirectory": [
-      "public"
-    ]
   }
 }

@@ -1,9 +1,9 @@
-// Point d'entree des contrats : reexporte tous les schemas et types Zod.
+// Point d'entrée des contrats : réexporte tous les schémas et types Zod partagés.
 
-export * from './common';
-export * from './errors';
-export * from './auth';
-export * from './catalog';
-export * from './documents';
-export * from './proposals';
-export * from './admin';
+export * from "./errors";
+export * from "./common";
+export * from "./auth";
+export * from "./catalog";
+export * from "./documents";
+export * from "./proposals";
+export * from "./admin";
