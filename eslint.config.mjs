@@ -27,6 +27,27 @@ export default tseslint.config(
     rules: {
       ...nextPlugin.configs.recommended.rules,
       ...nextPlugin.configs['core-web-vitals'].rules,
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+        },
+      ],
+    },
+  },
+  {
+    // Le back manipule des flux Web/Node et un route handler générique : `any`
+    // y est parfois nécessaire. Le front reste strict.
+    files: [
+      'src/server/**/*.{ts,tsx}',
+      'src/app/api/**/*.{ts,tsx}',
+      'tests/**/*.{ts,tsx}',
+      'scripts/**/*.{ts,tsx}',
+    ],
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'off',
     },
   },
   {

@@ -2,10 +2,8 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import {
   registerInputSchema,
-  loginInputSchema,
   ErrorCodeToStatus,
   ErrorCode,
-  createProposalSchema,
   documentFiltersSchema,
   updateUserStatusSchema,
 } from "@/contracts";

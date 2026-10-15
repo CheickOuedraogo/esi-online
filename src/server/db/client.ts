@@ -6,9 +6,7 @@ import * as schema from "./schema";
 import { env } from "@/server/config/env";
 
 declare global {
-  // eslint-disable-next-line no-var
   var __dbPool: Pool | undefined;
-  // eslint-disable-next-line no-var
   var __db: NodePgDatabase<typeof schema> | undefined;
 }
 

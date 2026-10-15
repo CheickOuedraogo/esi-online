@@ -29,7 +29,7 @@ export class LocalStorageProvider implements StorageProvider {
     return resolved;
   }
 
-  async put(stream: Readable, key: string, mimeType: string): Promise<void> {
+  async put(stream: Readable, key: string, _mimeType: string): Promise<void> {
     const targetPath = this.resolveSafePath(key);
     const targetDir = path.dirname(targetPath);
 
