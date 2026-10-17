@@ -73,7 +73,7 @@ export function Modal({ open, onClose, title, className, children }: ModalProps)
         tabIndex={-1}
         aria-hidden="true"
         onClick={onClose}
-        className="absolute inset-0 cursor-default bg-navy-950/50"
+        className="absolute inset-0 cursor-default bg-navy-950/50 animate-fade-in"
       />
       <div
         ref={dialogRef}
@@ -82,12 +82,16 @@ export function Modal({ open, onClose, title, className, children }: ModalProps)
         aria-label={title}
         tabIndex={-1}
         className={cn(
-          'relative z-10 w-full max-w-lg rounded-2xl border border-navy-100 bg-white shadow-xl shadow-navy-950/10 focus:outline-none',
+          'relative z-10 w-full max-w-lg rounded-2xl border border-navy-100 bg-white shadow-xl shadow-navy-950/10 animate-scale-in focus:outline-none',
           className,
         )}
       >
         <div className="flex items-start justify-between gap-4 border-b border-navy-100 px-6 py-4">
-          <h2 className="text-lg font-semibold tracking-tight text-navy-900">{title}</h2>
+          {title ? (
+            <h2 className="text-lg font-semibold tracking-tight text-navy-900">{title}</h2>
+          ) : (
+            <span aria-hidden="true" />
+          )}
           <button
             type="button"
             aria-label="Fermer"

@@ -49,9 +49,9 @@ export function AdminDashboardView() {
 
       <div className="grid gap-4 sm:grid-cols-3">
         {STAT_LABELS.map((stat) => (
-          <Link key={stat.key} href={stat.href}>
-            <Card className="transition-colors hover:border-navy-200">
-              <CardContent className="py-5">
+          <Link key={stat.key} href={stat.href} className="group">
+            <Card className="h-full border-l-4 border-l-gold-400 transition-all hover:-translate-y-0.5 hover:shadow-md">
+              <CardContent>
                 <p className="text-sm font-medium text-navy-500">{stat.label}</p>
                 <p className="mt-2 text-3xl font-semibold text-gold-600">{data[stat.key]}</p>
               </CardContent>
@@ -63,7 +63,7 @@ export function AdminDashboardView() {
       <div className="grid gap-4 sm:grid-cols-3">
         {metrics.map((metric) => (
           <Card key={metric.label}>
-            <CardContent className="py-5">
+            <CardContent>
               <p className="text-sm font-medium text-navy-500">{metric.label}</p>
               <p className="mt-2 text-2xl font-semibold text-navy-900">{metric.value}</p>
             </CardContent>
@@ -81,7 +81,7 @@ export function AdminDashboardView() {
               {data.topDownloadedDocuments.map((document, index) => (
                 <li
                   key={document.id}
-                  className="flex items-center justify-between gap-3 rounded-lg border border-navy-50 px-3 py-2.5"
+                  className="flex items-center justify-between gap-3 rounded-lg border border-navy-50 px-3 py-2.5 transition-colors hover:border-navy-100 hover:bg-navy-50/50"
                 >
                   <span className="flex min-w-0 items-center gap-3">
                     <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-navy-50 text-xs font-semibold text-navy-600">

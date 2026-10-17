@@ -31,3 +31,11 @@ export function downloadDocument(id: string): Promise<DownloadResult> {
 export function documentFileUrl(id: string): string {
   return `/api/documents/${id}/file`;
 }
+
+export function downloadPublicDocument(id: string): Promise<DownloadResult> {
+  return apiDownload(`/api/public/documents/${id}/download`);
+}
+
+export function publicDocumentFileUrl(id: string): string {
+  return `/api/public/documents/${id}/file`;
+}

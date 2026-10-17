@@ -15,8 +15,11 @@ function buildProposalForm(input: Partial<UpdateProposalInput>, file?: File): Fo
   const formData = new FormData();
   if (input.title !== undefined) formData.append('title', input.title);
   if (input.description !== undefined) formData.append('description', input.description);
-  if (input.subjectId !== undefined) formData.append('subjectId', input.subjectId);
+  if (input.subject !== undefined) formData.append('subject', input.subject);
   if (input.typeId !== undefined) formData.append('typeId', input.typeId);
+  if (input.levelId !== undefined && input.levelId !== null) {
+    formData.append('levelId', input.levelId);
+  }
   if (input.academicYear !== undefined && input.academicYear !== null) {
     formData.append('academicYear', String(input.academicYear));
   }

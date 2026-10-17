@@ -1,4 +1,5 @@
 // Schéma Drizzle des documents : visibilité, statut, métadonnées de fichier et compteurs.
+// La matière est une chaîne libre ; le niveau référence le catalogue `levels`.
 
 import {
   pgTable,
@@ -11,7 +12,7 @@ import {
   customType,
 } from "drizzle-orm/pg-core";
 import { relations, sql, SQL } from "drizzle-orm";
-import { subjects, documentTypes } from "./catalog";
+import { levels, documentTypes } from "./catalog";
 import { users } from "./users";
 
 export const visibilityEnum = pgEnum("visibility", ["public", "students"]);
@@ -34,12 +35,13 @@ export const documents = pgTable(
     id: uuid("id").defaultRandom().primaryKey(),
     title: text("title").notNull(),
     description: text("description"),
-    subjectId: uuid("subject_id")
-      .notNull()
-      .references(() => subjects.id, { onDelete: "restrict" }),
+    subject: text("subject").notNull(),
     typeId: uuid("type_id")
       .notNull()
       .references(() => documentTypes.id, { onDelete: "restrict" }),
+    levelId: uuid("level_id").references(() => levels.id, {
+      onDelete: "set null",
+    }),
     academicYear: integer("academic_year"),
     visibility: visibilityEnum("visibility").notNull().default("students"),
     status: documentStatusEnum("status").notNull().default("pending"),
@@ -53,7 +55,7 @@ export const documents = pgTable(
     downloadCount: integer("download_count").notNull().default(0),
     searchVector: tsvector("search_vector").generatedAlwaysAs(
       (): SQL =>
-        sql`to_tsvector('french', coalesce("title", '') || ' ' || coalesce("description", ''))`
+        sql`to_tsvector('french', coalesce("title", '') || ' ' || coalesce("description", '') || ' ' || coalesce("subject", ''))`
     ),
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
@@ -62,24 +64,25 @@ export const documents = pgTable(
   },
   (table) => [
     index("documents_status_visibility_idx").on(table.status, table.visibility),
-    index("documents_subject_id_idx").on(table.subjectId),
     index("documents_type_id_idx").on(table.typeId),
+    index("documents_level_id_idx").on(table.levelId),
     index("documents_academic_year_idx").on(table.academicYear),
     index("documents_published_at_idx").on(table.publishedAt),
     index("documents_download_count_idx").on(table.downloadCount),
     index("documents_search_vector_idx").using("gin", table.searchVector),
     index("documents_title_trgm_idx").using("gin", sql`${table.title} gin_trgm_ops`),
+    index("documents_subject_trgm_idx").using("gin", sql`${table.subject} gin_trgm_ops`),
   ]
 );
 
 export const documentsRelations = relations(documents, ({ one }) => ({
-  subject: one(subjects, {
-    fields: [documents.subjectId],
-    references: [subjects.id],
-  }),
   type: one(documentTypes, {
     fields: [documents.typeId],
     references: [documentTypes.id],
+  }),
+  level: one(levels, {
+    fields: [documents.levelId],
+    references: [levels.id],
   }),
   uploader: one(users, {
     fields: [documents.uploadedBy],

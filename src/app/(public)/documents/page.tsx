@@ -1,10 +1,10 @@
 import type { Metadata } from 'next';
-import { UnderConstruction } from '@/components/layout/UnderConstruction';
+import { PublicLibraryView } from '@/features/library';
 
 export const metadata: Metadata = {
   title: 'Documents publics',
 };
 
 export default function PublicDocumentsPage() {
-  return <UnderConstruction title="Documents publics" />;
+  return <PublicLibraryView />;
 }

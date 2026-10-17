@@ -43,8 +43,11 @@ export const PATCH = apiHandler(
       const rawMeta = {
         title: formData.get("title") || undefined,
         description: formData.get("description") !== null ? formData.get("description") : undefined,
-        subjectId: formData.get("subjectId") || undefined,
+        subject: formData.get("subject") || undefined,
         typeId: formData.get("typeId") || undefined,
+        levelId: formData.has("levelId")
+          ? formData.get("levelId") || null
+          : undefined,
         academicYear: formData.get("academicYear") || undefined,
         visibility: formData.get("visibility") || undefined,
       };

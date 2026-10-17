@@ -10,12 +10,13 @@ import type {
   ResetPasswordInput,
   ResetRequest,
   ReviewProposalInput,
+  UpdateUserInput,
   UpdateUserStatusInput,
 } from '@/contracts/admin';
 import type { Paginated } from '@/contracts/common';
 import type { DocumentItem, DocumentListQuery } from '@/contracts/documents';
 import type { CreateProposalInput, Proposal, ProposalFilters } from '@/contracts/proposals';
-import { apiFetch, buildQuery } from './client';
+import { apiFetch, apiUpload, buildQuery } from './client';
 
 export function getAdminStats(): Promise<AdminStats> {
   return apiFetch<AdminStats>('/api/admin/stats');
@@ -29,6 +30,14 @@ export function listAdminUsers(
 
 export function createUser(input: CreateUserInput): Promise<AdminUser> {
   return apiFetch<AdminUser>('/api/admin/users', { method: 'POST', body: input });
+}
+
+export function getAdminUser(id: string): Promise<AdminUser> {
+  return apiFetch<AdminUser>(`/api/admin/users/${id}`);
+}
+
+export function updateUser(id: string, input: UpdateUserInput): Promise<AdminUser> {
+  return apiFetch<AdminUser>(`/api/admin/users/${id}`, { method: 'PATCH', body: input });
 }
 
 export function updateUserStatus(id: string, input: UpdateUserStatusInput): Promise<AdminUser> {
@@ -45,8 +54,17 @@ export function listAdminDocuments(
   return apiFetch<Paginated<DocumentItem>>(`/api/admin/documents${buildQuery(params)}`);
 }
 
-export function createDocument(input: AdminContentInput): Promise<DocumentItem> {
-  return apiFetch<DocumentItem>('/api/admin/documents', { method: 'POST', body: input });
+export function createDocument(input: AdminContentInput, file: File): Promise<DocumentItem> {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('title', input.title);
+  if (input.description) formData.append('description', input.description);
+  formData.append('subject', input.subject);
+  formData.append('typeId', input.typeId);
+  if (input.levelId) formData.append('levelId', input.levelId);
+  if (input.academicYear != null) formData.append('academicYear', String(input.academicYear));
+  formData.append('visibility', input.visibility);
+  return apiUpload<DocumentItem>('/api/admin/documents', formData);
 }
 
 export function deleteDocument(id: string): Promise<void> {

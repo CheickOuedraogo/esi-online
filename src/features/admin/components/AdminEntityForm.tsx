@@ -1,7 +1,8 @@
 'use client';
 
 // Formulaire generique de modification d'un document ou d'une proposition
-// (titre, description, matiere, type, annee, visibilite). Pas de filiere : l'ESI n'en a qu'une.
+// (titre, description, matiere en texte libre, niveau, type, annee, visibilite).
+// Pas de filiere : l'ESI n'en a qu'une.
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
@@ -17,8 +18,9 @@ export interface AdminEntityFormProps {
   initial: {
     title: string;
     description: string;
-    subjectId: string;
+    subject: string;
     typeId: string;
+    levelId: string | null;
     academicYear: number | null;
     visibility: 'public' | 'students';
   };
@@ -27,7 +29,7 @@ export interface AdminEntityFormProps {
   cancelHref: string;
 }
 
-type FieldErrors = Partial<Record<'title' | 'subjectId' | 'typeId', string>>;
+type FieldErrors = Partial<Record<'title' | 'subject' | 'typeId', string>>;
 
 export function AdminEntityForm({ catalog, initial, submitLabel, onSubmit, cancelHref }: AdminEntityFormProps) {
   const router = useRouter();
@@ -42,11 +44,13 @@ export function AdminEntityForm({ catalog, initial, submitLabel, onSubmit, cance
     setFieldErrors({});
 
     const formData = new FormData(event.currentTarget);
+    const levelId = String(formData.get('levelId') ?? '');
     const parsed = adminContentInputSchema.safeParse({
       title: String(formData.get('title') ?? ''),
       description: String(formData.get('description') ?? '') || undefined,
-      subjectId: String(formData.get('subjectId') ?? ''),
+      subject: String(formData.get('subject') ?? ''),
       typeId: String(formData.get('typeId') ?? ''),
+      levelId: levelId || null,
       academicYear: String(formData.get('academicYear') ?? '') || undefined,
       visibility: String(formData.get('visibility') ?? 'students'),
     });
@@ -55,7 +59,7 @@ export function AdminEntityForm({ catalog, initial, submitLabel, onSubmit, cance
       const errors = parsed.error.flatten().fieldErrors;
       setFieldErrors({
         title: errors.title?.[0],
-        subjectId: errors.subjectId?.[0],
+        subject: errors.subject?.[0],
         typeId: errors.typeId?.[0],
       });
       return;
@@ -92,17 +96,8 @@ export function AdminEntityForm({ catalog, initial, submitLabel, onSubmit, cance
           </FormField>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <FormField id="subjectId" label="Matière" required error={fieldErrors.subjectId}>
-              <Select id="subjectId" name="subjectId" defaultValue={initial.subjectId}>
-                <option value="" disabled>
-                  Choisir une matière
-                </option>
-                {catalog.subjects.map((subject) => (
-                  <option key={subject.id} value={subject.id}>
-                    {subject.name}
-                  </option>
-                ))}
-              </Select>
+            <FormField id="subject" label="Matière" required error={fieldErrors.subject}>
+              <Input id="subject" name="subject" defaultValue={initial.subject} />
             </FormField>
 
             <FormField id="typeId" label="Type" required error={fieldErrors.typeId}>
@@ -120,6 +115,17 @@ export function AdminEntityForm({ catalog, initial, submitLabel, onSubmit, cance
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
+            <FormField id="levelId" label="Niveau">
+              <Select id="levelId" name="levelId" defaultValue={initial.levelId ?? ''}>
+                <option value="">Non précisé</option>
+                {catalog.levels.map((level) => (
+                  <option key={level.id} value={level.id}>
+                    {level.name}
+                  </option>
+                ))}
+              </Select>
+            </FormField>
+
             <FormField id="academicYear" label="Année académique">
               <Select id="academicYear" name="academicYear" defaultValue={initial.academicYear != null ? String(initial.academicYear) : ''}>
                 <option value="">Non précisée</option>
@@ -130,7 +136,9 @@ export function AdminEntityForm({ catalog, initial, submitLabel, onSubmit, cance
                 ))}
               </Select>
             </FormField>
+          </div>
 
+          <div className="grid gap-4 sm:grid-cols-2">
             <FormField id="visibility" label="Visibilité" required>
               <Select id="visibility" name="visibility" defaultValue={initial.visibility}>
                 <option value="students">Étudiants</option>

@@ -9,18 +9,26 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Button, Spinner, buttonClassName } from '@/components/ui';
 import { SkipLink } from '@/components/layout/SkipLink';
+import {
+  CatalogIcon,
+  DashboardIcon,
+  DocumentsIcon,
+  ProposalsIcon,
+  ResetIcon,
+  UsersIcon,
+} from '@/components/layout/NavIcons';
 import { logout } from '@/lib/api-client/auth';
 import { useRequireRole } from '@/lib/hooks/useSession';
 import { useMediaQuery } from '@/lib/hooks/useMediaQuery';
 import { cn } from '@/lib/utils';
 
 const NAV = [
-  { href: '/admin', label: 'Tableau de bord', exact: true },
-  { href: '/admin/users', label: 'Utilisateurs' },
-  { href: '/admin/documents', label: 'Documents' },
-  { href: '/admin/proposals', label: 'Propositions' },
-  { href: '/admin/reset-requests', label: 'Réinitialisations' },
-  { href: '/admin/catalog', label: 'Catalogue' },
+  { href: '/admin', label: 'Tableau de bord', exact: true, icon: DashboardIcon },
+  { href: '/admin/users', label: 'Utilisateurs', icon: UsersIcon },
+  { href: '/admin/documents', label: 'Documents', icon: DocumentsIcon },
+  { href: '/admin/proposals', label: 'Propositions', icon: ProposalsIcon },
+  { href: '/admin/reset-requests', label: 'Réinitialisations', icon: ResetIcon },
+  { href: '/admin/catalog', label: 'Catalogue', icon: CatalogIcon },
 ];
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
@@ -69,6 +77,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               const active = item.exact
                 ? pathname === item.href
                 : pathname === item.href || pathname.startsWith(`${item.href}/`);
+              const Icon = item.icon;
               return (
                 <Link
                   key={item.href}
@@ -76,12 +85,13 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                   onClick={() => setOpen(false)}
                   aria-current={active ? 'page' : undefined}
                   className={cn(
-                    'rounded-lg border-l-2 px-3 py-2 text-sm font-medium transition-colors',
+                    'flex items-center gap-3 rounded-lg border-l-2 px-3 py-2 text-sm font-medium transition-colors',
                     active
                       ? 'border-gold-400 bg-white/10 text-cream'
                       : 'border-transparent text-cream/70 hover:bg-white/5 hover:text-cream',
                   )}
                 >
+                  <Icon className={cn(active ? 'text-gold-300' : 'text-cream/50')} />
                   {item.label}
                 </Link>
               );
@@ -122,12 +132,9 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
             <div className="flex items-center gap-3">
               {authed ? (
-                <>
-                  <span className="hidden text-sm text-navy-600 sm:inline">{user.fullName}</span>
-                  <Button variant="secondary" size="sm" onClick={handleLogout}>
-                    Déconnexion
-                  </Button>
-                </>
+                <Button variant="secondary" size="sm" onClick={handleLogout}>
+                  Déconnexion
+                </Button>
               ) : (
                 <>
                   <Link href="/login" className={buttonClassName({ variant: 'ghost', size: 'sm' })}>

@@ -14,7 +14,6 @@ describe("Contrats et Schémas Zod", () => {
       fullName: "Amine Benali",
       email: "amine@esi.dz",
       password: "Password123!",
-      programId: "123e4567-e89b-12d3-a456-426614174000",
       levelId: "123e4567-e89b-12d3-a456-426614174001",
     };
 
@@ -27,7 +26,6 @@ describe("Contrats et Schémas Zod", () => {
       fullName: "Amine Benali",
       email: "amine@esi.dz",
       password: "short",
-      programId: "123e4567-e89b-12d3-a456-426614174000",
       levelId: "123e4567-e89b-12d3-a456-426614174001",
     };
 

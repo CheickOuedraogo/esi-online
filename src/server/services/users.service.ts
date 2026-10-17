@@ -10,12 +10,12 @@ import {
   rejections,
   documents,
   levels,
-  programs,
 } from "@/server/db/schema";
 import {
   AdminUser,
   AdminUserFilters,
   UpdateUserStatus,
+  UpdateUserInput,
   ResetPasswordResponse,
   PasswordResetRequestItem,
 } from "@/contracts/admin";
@@ -41,7 +41,6 @@ function toUserPublic(row: typeof users.$inferSelect): UserPublic {
     role: row.role,
     status: row.status,
     mustChangePassword: row.mustChangePassword,
-    programId: row.programId,
     levelId: row.levelId,
     createdAt: row.createdAt.toISOString(),
   };
@@ -49,13 +48,11 @@ function toUserPublic(row: typeof users.$inferSelect): UserPublic {
 
 function toAdminUser(
   row: (typeof users.$inferSelect) & {
-    programName?: string | null;
     levelName?: string | null;
   }
 ): AdminUser {
   return {
     ...toUserPublic(row),
-    programName: row.programName ?? null,
     levelName: row.levelName ?? null,
   };
 }
@@ -98,11 +95,9 @@ export const usersService = {
       db
         .select({
           u: users,
-          programName: programs.name,
           levelName: levels.name,
         })
         .from(users)
-        .leftJoin(programs, eq(users.programId, programs.id))
         .leftJoin(levels, eq(users.levelId, levels.id))
         .where(whereClause)
         .orderBy(desc(users.createdAt))
@@ -114,7 +109,7 @@ export const usersService = {
 
     return {
       items: userRows.map((r) =>
-        toAdminUser({ ...r.u, programName: r.programName, levelName: r.levelName })
+        toAdminUser({ ...r.u, levelName: r.levelName })
       ),
       page,
       pageSize,
@@ -122,16 +117,14 @@ export const usersService = {
     };
   },
 
-  // ── Utilisateur unique enrichi des noms de filière et de niveau ────────────
+  // ── Utilisateur unique enrichi du nom de niveau ────────────────────────────
   async getAdminUser(userId: string): Promise<AdminUser> {
     const [row] = await db
       .select({
         u: users,
-        programName: programs.name,
         levelName: levels.name,
       })
       .from(users)
-      .leftJoin(programs, eq(users.programId, programs.id))
       .leftJoin(levels, eq(users.levelId, levels.id))
       .where(eq(users.id, userId))
       .limit(1);
@@ -140,7 +133,7 @@ export const usersService = {
       throw new NotFoundError("Utilisateur introuvable");
     }
 
-    return toAdminUser({ ...row.u, programName: row.programName, levelName: row.levelName });
+    return toAdminUser({ ...row.u, levelName: row.levelName });
   },
 
   async updateUserStatus(
@@ -193,6 +186,71 @@ export const usersService = {
     if (input.status === "suspended" || input.status === "rejected") {
       await deleteAllUserSessions(targetUserId);
     }
+
+    return this.getAdminUser(targetUserId);
+  },
+
+  async updateUser(
+    adminId: string,
+    targetUserId: string,
+    input: UpdateUserInput
+  ): Promise<AdminUser> {
+    const [targetUser] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, targetUserId))
+      .limit(1);
+
+    if (!targetUser) {
+      throw new NotFoundError("Utilisateur introuvable");
+    }
+
+    const email = input.email.toLowerCase();
+
+    // Unicité de l'email si celui-ci change
+    if (email !== targetUser.email) {
+      const existing = await db
+        .select({ id: users.id })
+        .from(users)
+        .where(eq(users.email, email))
+        .limit(1);
+
+      if (existing.length > 0) {
+        throw new ValidationError("Cet email est déjà associé à un compte");
+      }
+    }
+
+    // Un administrateur ne peut pas modifier son propre rôle
+    if (adminId === targetUserId && input.role !== targetUser.role) {
+      throw new ForbiddenError(
+        "Un administrateur ne peut pas modifier son propre rôle"
+      );
+    }
+
+    // Ne pas retirer le rôle admin au dernier administrateur
+    if (targetUser.role === "admin" && input.role === "student") {
+      const adminCount = await db
+        .select({ count: count() })
+        .from(users)
+        .where(eq(users.role, "admin"));
+
+      if ((adminCount[0]?.count ?? 0) <= 1) {
+        throw new ForbiddenError(
+          "Impossible de retirer le rôle du dernier administrateur"
+        );
+      }
+    }
+
+    await db
+      .update(users)
+      .set({
+        fullName: input.fullName.trim(),
+        email,
+        role: input.role,
+        levelId: input.levelId ?? null,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, targetUserId));
 
     return this.getAdminUser(targetUserId);
   },
@@ -407,7 +465,6 @@ export const usersService = {
     role?: "student" | "admin";
     status?: "pending" | "validated" | "rejected" | "suspended";
     levelId?: string | null;
-    programId?: string | null;
   }): Promise<UserPublic> {
     const email = input.email.toLowerCase();
     const existing = await db
@@ -433,7 +490,6 @@ export const usersService = {
         status: input.status ?? "validated",
         mustChangePassword: !input.password,
         levelId: input.levelId ?? null,
-        programId: input.programId ?? null,
       })
       .returning();
 

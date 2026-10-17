@@ -29,7 +29,7 @@ export const GET = apiHandler(
       headers: {
         "Content-Type": fileData.mimeType,
         "Content-Length": fileData.sizeBytes.toString(),
-        "Content-Disposition": `attachment; filename="${encodeURIComponent(
+        "Content-Disposition": `inline; filename="${encodeURIComponent(
           fileData.originalFilename
         )}"`,
       },

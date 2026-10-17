@@ -6,6 +6,7 @@ export {
   EMPTY_FILTERS,
   ACADEMIC_YEARS,
   ACADEMIC_YEAR_OPTIONS,
+  SORT_OPTIONS,
   type DocumentFiltersProps,
   type LibraryFilters,
 } from './components/DocumentFilters';
@@ -13,3 +14,8 @@ export { Pagination, type PaginationProps } from './components/Pagination';
 export { SearchBar, type SearchBarProps } from './components/SearchBar';
 export { LibraryView } from './components/LibraryView';
 export { DocumentDetailView, type DocumentDetailViewProps } from './components/DocumentDetailView';
+export { PublicLibraryView } from './components/PublicLibraryView';
+export {
+  PublicDocumentDetailView,
+  type PublicDocumentDetailViewProps,
+} from './components/PublicDocumentDetailView';

@@ -1,4 +1,4 @@
-// GET - Lecture du catalogue complet (niveaux, filières, matières, types de documents).
+// GET - Lecture du catalogue complet (niveaux et types de documents).
 // Entrée : aucune. Sortie : CatalogResponse (contracts/catalog).
 // Service : catalogService.getFullCatalog. Rôle : public.
 

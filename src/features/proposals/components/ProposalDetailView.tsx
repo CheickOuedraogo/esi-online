@@ -34,7 +34,7 @@ export function ProposalDetailView({ id }: { id: string }) {
   const proposal = resource.data;
   const canEdit = proposal.status !== 'approved';
   const metadata = [
-    { label: 'Matière', value: proposal.subjectName },
+    { label: 'Matière', value: proposal.subject },
     { label: 'Niveau', value: proposal.levelName ?? '—' },
     { label: 'Type', value: proposal.typeName },
     { label: 'Année', value: formatAcademicYear(proposal.academicYear) },
@@ -80,7 +80,7 @@ export function ProposalDetailView({ id }: { id: string }) {
           <dl className="mt-4 grid grid-cols-2 gap-4 border-t border-navy-50 pt-5 sm:grid-cols-3">
             {metadata.map((entry) => (
               <div key={entry.label}>
-                <dt className="text-xs font-semibold uppercase tracking-wide text-navy-400">
+                <dt className="text-xs font-semibold uppercase tracking-wide text-navy-500">
                   {entry.label}
                 </dt>
                 <dd className="mt-1 break-words text-sm text-navy-800">{entry.value}</dd>

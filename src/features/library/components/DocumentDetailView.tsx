@@ -6,6 +6,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Alert, Badge, Button, Card, CardContent, PageHeader, Spinner } from '@/components/ui';
 import { DocumentPreview } from '@/components/documents/DocumentPreview';
+import { FavoriteButton } from '@/features/favorites';
 import { documentFileUrl, downloadDocument, getDocument } from '@/lib/api-client/documents';
 import { useApiResource } from '@/lib/hooks/useApiResource';
 import {
@@ -67,7 +68,7 @@ export function DocumentDetailView({ id }: DocumentDetailViewProps) {
 
   const item = resource.data;
   const metadata = [
-    { label: 'Matière', value: item.subjectName },
+    { label: 'Matière', value: item.subject },
     { label: 'Niveau', value: item.levelName ?? '—' },
     { label: 'Type', value: item.typeName },
     { label: 'Année', value: formatAcademicYear(item.academicYear) },
@@ -114,6 +115,7 @@ export function DocumentDetailView({ id }: DocumentDetailViewProps) {
             <Button onClick={handleDownload} loading={downloading}>
               {downloading ? 'Téléchargement…' : 'Télécharger le fichier'}
             </Button>
+            <FavoriteButton documentId={item.id} />
             <span className="text-xs text-navy-500">
               {formatCount(item.downloadCount, 'téléchargement')} · {item.originalFilename}
             </span>

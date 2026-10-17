@@ -8,7 +8,9 @@
 
     header {
         X-Content-Type-Options "nosniff"
-        X-Frame-Options "DENY"
+        # SAMEORIGIN autorise l'aperçu inline des PDF dans une iframe de l'application
+        # tout en bloquant l'intégration du site par des domaines tiers.
+        X-Frame-Options "SAMEORIGIN"
         Referrer-Policy "strict-origin-when-cross-origin"
         Permissions-Policy "camera=(), microphone=(), geolocation=()"
     }

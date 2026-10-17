@@ -37,8 +37,9 @@ export const POST = apiHandler(async (req: NextRequest) => {
   const rawMeta = {
     title: formData.get("title"),
     description: formData.get("description") || undefined,
-    subjectId: formData.get("subjectId"),
+    subject: formData.get("subject"),
     typeId: formData.get("typeId"),
+    levelId: formData.get("levelId") || undefined,
     academicYear: formData.get("academicYear") || undefined,
     visibility: formData.get("visibility") || "students",
   };

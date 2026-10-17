@@ -1,8 +1,11 @@
 'use client';
 
-// Gestion des utilisateurs : consultation des details, validation, rejet et desactivation.
+// Gestion des utilisateurs : liste, filtres et création. La consultation, la
+// modification, le changement de statut et la suppression se font sur la fiche
+// dédiée (/admin/users/[id]).
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import {
   Alert,
   Badge,
@@ -10,26 +13,20 @@ import {
   Card,
   CardContent,
   Input,
-  Label,
   Modal,
   PageHeader,
   Select,
   Spinner,
-  Textarea,
+  buttonClassName,
 } from '@/components/ui';
 import type { AdminUser } from '@/contracts/admin';
 import type { UserStatus } from '@/contracts/auth';
-import { ApiClientError } from '@/lib/api-client/client';
-import { listAdminUsers, updateUserStatus } from '@/lib/api-client/admin';
+import { getCatalog } from '@/lib/api-client/catalog';
+import { listAdminUsers } from '@/lib/api-client/admin';
 import { useApiResource } from '@/lib/hooks/useApiResource';
 import { Pagination } from '@/features/library';
-import { ROLE_LABEL, USER_STATUS_LABEL, USER_STATUS_VARIANT, formatDate } from '@/lib/labels';
-
-function splitName(fullName: string): { lastName: string; firstName: string } {
-  const parts = fullName.trim().split(/\s+/);
-  if (parts.length === 1) return { lastName: parts[0], firstName: '' };
-  return { firstName: parts[0], lastName: parts.slice(1).join(' ') };
-}
+import { USER_STATUS_LABEL, USER_STATUS_VARIANT } from '@/lib/labels';
+import { AdminUserCreateForm } from './AdminUserCreateForm';
 
 export function AdminUsersView() {
   const [q, setQ] = useState('');
@@ -44,50 +41,25 @@ export function AdminUsersView() {
     () => listAdminUsers({ q: q || undefined, status: status || undefined, page }),
     [q, status, page],
   );
-  const [busyId, setBusyId] = useState<string | null>(null);
+  const catalog = useApiResource(() => getCatalog(), []);
+  const [creating, setCreating] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [selected, setSelected] = useState<AdminUser | null>(null);
-  const [decision, setDecision] = useState<{ user: AdminUser; next: UserStatus } | null>(null);
-  const [reason, setReason] = useState('');
 
-  function askDecision(user: AdminUser, next: UserStatus) {
-    setReason('');
-    setSelected(null);
-    setDecision({ user, next });
-  }
-
-  async function run(user: AdminUser, next: UserStatus, reasonText?: string) {
-    setBusyId(user.id);
-    setNotice(null);
-    setError(null);
-    try {
-      await updateUserStatus(user.id, { status: next, reason: reasonText?.trim() || undefined });
-      setSelected((current) => (current && current.id === user.id ? { ...current, status: next } : current));
-      users.reload();
-      setNotice(`Statut de ${user.fullName} mis à jour : ${USER_STATUS_LABEL[next]}.`);
-      return true;
-    } catch (err) {
-      setError(err instanceof ApiClientError ? err.message : 'L’action a échoué.');
-      return false;
-    } finally {
-      setBusyId(null);
-    }
-  }
-
-  async function confirmDecision() {
-    if (!decision) return;
-    const { user, next } = decision;
-    const ok = await run(user, next, reason);
-    if (ok) {
-      setDecision(null);
-      setReason('');
-    }
+  function handleCreated(user: AdminUser) {
+    setCreating(false);
+    users.reload();
+    setNotice(`Compte de ${user.fullName} créé.`);
   }
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Utilisateurs" description="Validez les inscriptions et consultez les comptes." />
+      <PageHeader
+        title="Utilisateurs"
+        description="Validez les inscriptions et consultez les comptes."
+        actions={
+          <Button onClick={() => setCreating(true)}>Nouvel utilisateur</Button>
+        }
+      />
 
       <Card>
         <CardContent className="grid gap-3 py-5 sm:grid-cols-[1fr_220px]">
@@ -113,7 +85,6 @@ export function AdminUsersView() {
       </Card>
 
       {notice && <Alert variant="success">{notice}</Alert>}
-      {error && <Alert variant="error">{error}</Alert>}
 
       {users.loading ? (
         <div className="flex justify-center py-16">
@@ -127,9 +98,9 @@ export function AdminUsersView() {
             <table className="w-full min-w-[560px] text-sm">
               <caption className="sr-only">Liste des utilisateurs</caption>
               <thead>
-                <tr className="border-b border-navy-100 text-left text-xs uppercase tracking-wide text-navy-500">
-                  <th scope="col" className="px-4 py-3 font-semibold">Nom</th>
-                  <th scope="col" className="px-4 py-3 font-semibold">Prénom</th>
+                <tr className="border-b border-navy-100 bg-navy-50/60 text-left text-xs uppercase tracking-wide text-navy-500">
+                  <th scope="col" className="px-4 py-3 font-semibold">Nom complet</th>
+                  <th scope="col" className="px-4 py-3 font-semibold">E-mail</th>
                   <th scope="col" className="px-4 py-3 font-semibold">Statut</th>
                   <th scope="col" className="px-4 py-3 text-right font-semibold">Action</th>
                 </tr>
@@ -142,30 +113,28 @@ export function AdminUsersView() {
                     </td>
                   </tr>
                 )}
-                {users.data?.items.map((user) => {
-                  const { lastName, firstName } = splitName(user.fullName);
-                  return (
-                    <tr key={user.id} className="border-b border-navy-50 last:border-0">
-                      <td className="px-4 py-3 font-medium text-navy-900">{lastName}</td>
-                      <td className="px-4 py-3 text-navy-700">{firstName}</td>
-                      <td className="px-4 py-3">
-                        <Badge variant={USER_STATUS_VARIANT[user.status]}>
-                          {USER_STATUS_LABEL[user.status]}
-                        </Badge>
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <Button
-                          size="sm"
-                          variant="secondary"
-                          disabled={busyId === user.id}
-                          onClick={() => setSelected(user)}
-                        >
-                          Visualiser
-                        </Button>
-                      </td>
-                    </tr>
-                  );
-                })}
+                {users.data?.items.map((user) => (
+                  <tr
+                    key={user.id}
+                    className="border-b border-navy-50 transition-colors last:border-0 hover:bg-navy-50/40"
+                  >
+                    <td className="px-4 py-3 font-medium text-navy-900">{user.fullName}</td>
+                    <td className="px-4 py-3 text-navy-600">{user.email}</td>
+                    <td className="px-4 py-3">
+                      <Badge variant={USER_STATUS_VARIANT[user.status]}>
+                        {USER_STATUS_LABEL[user.status]}
+                      </Badge>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <Link
+                        href={`/admin/users/${user.id}`}
+                        className={buttonClassName({ variant: 'secondary', size: 'sm' })}
+                      >
+                        Visualiser
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
@@ -182,131 +151,16 @@ export function AdminUsersView() {
         />
       )}
 
-      <Modal open={selected !== null} onClose={() => setSelected(null)} title="Détails de l’utilisateur">
-        {selected && (
-          <div className="max-h-[75vh] space-y-4 overflow-y-auto px-6 py-5">
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge variant={USER_STATUS_VARIANT[selected.status]}>
-                {USER_STATUS_LABEL[selected.status]}
-              </Badge>
-              <Badge variant="navy">{ROLE_LABEL[selected.role]}</Badge>
-            </div>
-
-            <dl className="grid gap-x-6 gap-y-3 sm:grid-cols-2">
-              <div>
-                <dt className="text-xs uppercase tracking-wide text-navy-500">Nom</dt>
-                <dd className="text-sm text-navy-900">{splitName(selected.fullName).lastName}</dd>
-              </div>
-              <div>
-                <dt className="text-xs uppercase tracking-wide text-navy-500">Prénom</dt>
-                <dd className="text-sm text-navy-900">{splitName(selected.fullName).firstName || '—'}</dd>
-              </div>
-              <div>
-                <dt className="text-xs uppercase tracking-wide text-navy-500">E-mail</dt>
-                <dd className="break-all text-sm text-navy-900">{selected.email}</dd>
-              </div>
-              <div>
-                <dt className="text-xs uppercase tracking-wide text-navy-500">Niveau</dt>
-                <dd className="text-sm text-navy-900">{selected.levelName ?? '—'}</dd>
-              </div>
-              <div>
-                <dt className="text-xs uppercase tracking-wide text-navy-500">Inscrit le</dt>
-                <dd className="text-sm text-navy-900">{formatDate(selected.createdAt)}</dd>
-              </div>
-            </dl>
-
-            {error && <Alert variant="error">{error}</Alert>}
-
-            <div className="flex flex-wrap justify-end gap-2 border-t border-navy-100 pt-4">
-              {selected.status === 'validated' ? (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="text-red-600 hover:bg-red-50"
-                  disabled={busyId === selected.id}
-                  onClick={() => askDecision(selected, 'suspended')}
-                >
-                  Désactiver le compte
-                </Button>
-              ) : (
-                <>
-                  {selected.status === 'pending' && (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      disabled={busyId === selected.id}
-                      onClick={() => askDecision(selected, 'rejected')}
-                    >
-                      Rejeter
-                    </Button>
-                  )}
-                  <Button size="sm" disabled={busyId === selected.id} onClick={() => run(selected, 'validated')}>
-                    Valider
-                  </Button>
-                </>
-              )}
-            </div>
-          </div>
-        )}
-      </Modal>
-
-      <Modal
-        open={decision !== null}
-        onClose={() => setDecision(null)}
-        title={decision?.next === 'rejected' ? 'Rejeter l’inscription' : 'Désactiver le compte'}
-      >
-        {decision && (
-          <div className="space-y-4 px-6 py-5">
-            <p className="text-sm text-navy-700">
-              {decision.next === 'rejected' ? (
-                <>
-                  Vous êtes sur le point de rejeter l’inscription de{' '}
-                  <strong className="text-navy-900">{decision.user.fullName}</strong>. Cette personne
-                  ne pourra pas se connecter.
-                </>
-              ) : (
-                <>
-                  Vous êtes sur le point de désactiver le compte de{' '}
-                  <strong className="text-navy-900">{decision.user.fullName}</strong>. Il ne pourra
-                  plus se connecter tant qu’il n’aura pas été réactivé.
-                </>
-              )}
-            </p>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="decision-reason">
-                Motif{decision.next === 'rejected' ? '' : ' (facultatif)'}
-              </Label>
-              <Textarea
-                id="decision-reason"
-                value={reason}
-                onChange={(event) => setReason(event.target.value)}
-                rows={3}
-                maxLength={500}
-                required={decision.next === 'rejected'}
-                placeholder={
-                  decision.next === 'rejected'
-                    ? 'Expliquez brièvement la raison du rejet…'
-                    : 'Ajoutez un motif si nécessaire…'
-                }
-              />
-            </div>
-
-            {error && <Alert variant="error">{error}</Alert>}
-
-            <div className="flex justify-end gap-2 border-t border-navy-100 pt-4">
-              <Button variant="secondary" onClick={() => setDecision(null)} disabled={busyId !== null}>
-                Annuler
-              </Button>
-              <Button
-                variant="danger"
-                onClick={confirmDecision}
-                loading={busyId === decision.user.id}
-                disabled={decision.next === 'rejected' && reason.trim().length === 0}
-              >
-                {decision.next === 'rejected' ? 'Rejeter' : 'Désactiver'}
-              </Button>
-            </div>
+      <Modal open={creating} onClose={() => setCreating(false)} title="Nouvel utilisateur">
+        {catalog.data ? (
+          <AdminUserCreateForm
+            levels={catalog.data.levels}
+            onCreated={handleCreated}
+            onCancel={() => setCreating(false)}
+          />
+        ) : (
+          <div className="flex justify-center px-6 py-10">
+            <Spinner className="h-6 w-6 text-navy-400" label="Chargement du catalogue" />
           </div>
         )}
       </Modal>

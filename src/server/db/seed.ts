@@ -1,14 +1,13 @@
 // Script de peuplement de la base de données :
-// Niveaux, filières, matières types, types de documents, compte administrateur initial,
+// Niveaux, types de documents, compte administrateur initial,
 // puis jeu de données de démonstration (étudiants, documents, propositions) si la base est vide.
+// L'ESI est une école unique : pas de filière, la matière est un texte libre.
 
 import { Readable } from "stream";
 import { eq, count } from "drizzle-orm";
 import { db, pool } from "./client";
 import {
   levels,
-  programs,
-  subjects,
   documentTypes,
   users,
   documents,
@@ -93,35 +92,7 @@ async function seed() {
     }
   }
 
-  // 2. Filières (ESI - Université Nazi Boni)
-  const defaultPrograms = [
-    "Tronc Commun",
-    "Génie Logiciel (GL)",
-    "Systèmes et Réseaux (SR)",
-    "Systèmes d'Information (SI)",
-  ];
-  const programMap = new Map<string, string>();
-
-  for (const name of defaultPrograms) {
-    const existing = await db
-      .select({ id: programs.id })
-      .from(programs)
-      .where(eq(programs.name, name))
-      .limit(1);
-
-    if (existing.length === 0) {
-      const [inserted] = await db
-        .insert(programs)
-        .values({ name })
-        .returning();
-      programMap.set(name, inserted.id);
-      console.log(`  ✓ Filière ajoutée : ${name}`);
-    } else {
-      programMap.set(name, existing[0].id);
-    }
-  }
-
-  // 3. Types de documents (cours, TD, TP, examen, corrigé, mémoire, autre)
+  // 2. Types de documents (cours, TD, TP, examen, corrigé, mémoire, autre)
   const defaultDocTypes = [
     "cours",
     "TD",
@@ -145,39 +116,7 @@ async function seed() {
     }
   }
 
-  // 4. Matières de démonstration
-  const l1LevelId = levelMap.get("L1");
-  const tcProgId = programMap.get("Tronc Commun");
-
-  if (l1LevelId && tcProgId) {
-    const defaultSubjects = [
-      "Algorithmique et Structures de Données 1",
-      "Architecture des Ordinateurs",
-      "Analyse Mathématique",
-      "Algèbre Linéaire",
-      "Systèmes d'Exploitation 1",
-      "Technologies Web et Internet",
-    ];
-
-    for (const name of defaultSubjects) {
-      const existing = await db
-        .select({ id: subjects.id })
-        .from(subjects)
-        .where(eq(subjects.name, name))
-        .limit(1);
-
-      if (existing.length === 0) {
-        await db.insert(subjects).values({
-          name,
-          levelId: l1LevelId,
-          programId: tcProgId,
-        });
-        console.log(`  ✓ Matière ajoutée : ${name}`);
-      }
-    }
-  }
-
-  // 5. Compte Administrateur initial (ESI - UNB)
+  // 3. Compte Administrateur initial (ESI - UNB)
   const adminEmail = env.ADMIN_EMAIL.toLowerCase();
   const existingAdmin = await db
     .select({ id: users.id })
@@ -200,19 +139,16 @@ async function seed() {
     console.log(`  ℹ Administrateur déjà existant : ${adminEmail}`);
   }
 
-  // 6. Jeu de données de démonstration (uniquement si aucun document n'existe)
+  // 4. Jeu de données de démonstration (uniquement si aucun document n'existe)
   const [{ total: existingDocCount }] = await db
     .select({ total: count() })
     .from(documents);
 
   if (existingDocCount === 0) {
-    const subjectRows = await db.select().from(subjects);
     const typeRows = await db.select().from(documentTypes);
-    const findSubject = (name: string) => subjectRows.find((s) => s.name === name)?.id;
     const findType = (name: string) => typeRows.find((t) => t.name === name)?.id;
 
     const demoLevelId = levelMap.get("L1") ?? null;
-    const demoProgramId = programMap.get("Tronc Commun") ?? null;
     const demoPasswordHash = await hashPassword("Etudiant123!");
 
     const [demoStudent] = await db
@@ -225,7 +161,6 @@ async function seed() {
         status: "validated",
         mustChangePassword: false,
         levelId: demoLevelId,
-        programId: demoProgramId,
       })
       .returning();
     console.log("  ✓ Étudiant de démonstration : etudiant@esi.dz / Etudiant123!");
@@ -239,7 +174,6 @@ async function seed() {
         role: "student",
         status: "pending",
         levelId: demoLevelId,
-        programId: demoProgramId,
       })
       .returning();
     console.log("  ✓ Étudiant en attente : awa.traore@esi.dz");
@@ -288,16 +222,16 @@ async function seed() {
 
     let approvedCount = 0;
     for (const doc of approvedDocs) {
-      const subjectId = findSubject(doc.subject);
       const typeId = findType(doc.type);
-      if (!subjectId || !typeId) continue;
+      if (!typeId) continue;
 
       const file = await storeDemoPdf(`${doc.title}.pdf`, doc.title);
       await db.insert(documents).values({
         title: doc.title,
         description: `Document de démonstration : ${doc.title}.`,
-        subjectId,
+        subject: doc.subject,
         typeId,
+        levelId: demoLevelId,
         academicYear: doc.academicYear,
         visibility: doc.visibility,
         status: "approved",
@@ -327,16 +261,16 @@ async function seed() {
 
     let proposalCount = 0;
     for (const proposal of proposalDocs) {
-      const subjectId = findSubject(proposal.subject);
       const typeId = findType(proposal.type);
-      if (!subjectId || !typeId) continue;
+      if (!typeId) continue;
 
       const file = await storeDemoPdf(`${proposal.title}.pdf`, proposal.title);
       await db.insert(documents).values({
         title: proposal.title,
         description: `Proposition de démonstration : ${proposal.title}.`,
-        subjectId,
+        subject: proposal.subject,
         typeId,
+        levelId: demoLevelId,
         academicYear: proposal.academicYear,
         visibility: "students",
         status: "pending",

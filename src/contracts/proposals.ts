@@ -12,8 +12,9 @@ export const PROPOSAL_RETENTION_DAYS = 3;
 export const createProposalSchema = z.object({
   title: z.string().trim().min(1, "Titre requis").max(255),
   description: z.string().trim().max(2000).optional(),
-  subjectId: z.string().uuid("Matière invalide"),
+  subject: z.string().trim().min(1, "Matière requise").max(150),
   typeId: z.string().uuid("Type invalide"),
+  levelId: z.string().uuid().nullable().optional(),
   academicYear: z.coerce.number().int().min(2000).max(2100).optional(),
 });
 
@@ -25,8 +26,7 @@ export const proposalSchema = z.object({
   id: z.string().uuid(),
   title: z.string(),
   description: z.string().nullable(),
-  subjectId: z.string().uuid(),
-  subjectName: z.string(),
+  subject: z.string(),
   typeId: z.string().uuid(),
   typeName: z.string(),
   academicYear: z.number().nullable(),
@@ -37,6 +37,7 @@ export const proposalSchema = z.object({
   originalFilename: z.string(),
   rejectionReason: z.string().nullable(),
   uploaderName: z.string().nullable(),
+  levelId: z.string().uuid().nullable(),
   levelName: z.string().nullable(),
   contentAvailable: z.boolean(),
   fileExpiresAt: z.string().datetime(),
@@ -68,8 +69,9 @@ export const moderateProposalSchema = z.object({
   // Champs corrigeables à l'approbation
   title: z.string().trim().min(1).max(255).optional(),
   description: z.string().trim().max(2000).optional(),
-  subjectId: z.string().uuid().optional(),
+  subject: z.string().trim().min(1).max(150).optional(),
   typeId: z.string().uuid().optional(),
+  levelId: z.string().uuid().nullable().optional(),
   academicYear: z.coerce.number().int().min(2000).max(2100).nullable().optional(),
   visibility: z.enum(["public", "students"]).default("students"),
 });

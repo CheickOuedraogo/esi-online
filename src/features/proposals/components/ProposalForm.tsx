@@ -13,7 +13,7 @@ import { getCatalog } from '@/lib/api-client/catalog';
 import { useApiResource } from '@/lib/hooks/useApiResource';
 import { ACADEMIC_YEAR_OPTIONS } from '@/features/library';
 
-type FieldErrors = Partial<Record<'title' | 'subjectId' | 'typeId' | 'file', string>>;
+type FieldErrors = Partial<Record<'title' | 'subject' | 'typeId' | 'file', string>>;
 
 export function ProposalForm({ proposal }: { proposal?: Proposal }) {
   const router = useRouter();
@@ -32,11 +32,13 @@ export function ProposalForm({ proposal }: { proposal?: Proposal }) {
 
     const formData = new FormData(event.currentTarget);
     const file = fileRef.current?.files?.[0];
+    const levelId = String(formData.get('levelId') ?? '');
     const parsed = createProposalInputSchema.safeParse({
       title: String(formData.get('title') ?? ''),
       description: String(formData.get('description') ?? '') || undefined,
-      subjectId: String(formData.get('subjectId') ?? ''),
+      subject: String(formData.get('subject') ?? ''),
       typeId: String(formData.get('typeId') ?? ''),
+      levelId: levelId || null,
       academicYear: formData.get('academicYear')
         ? Number(formData.get('academicYear'))
         : undefined,
@@ -46,7 +48,7 @@ export function ProposalForm({ proposal }: { proposal?: Proposal }) {
       const errors = parsed.error.flatten().fieldErrors;
       setFieldErrors({
         title: errors.title?.[0],
-        subjectId: errors.subjectId?.[0],
+        subject: errors.subject?.[0],
         typeId: errors.typeId?.[0],
       });
       return;
@@ -100,21 +102,13 @@ export function ProposalForm({ proposal }: { proposal?: Proposal }) {
           </FormField>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <FormField id="subjectId" label="Matière" required error={fieldErrors.subjectId}>
-              {catalog.loading ? (
-                <Spinner className="text-navy-400" />
-              ) : (
-                <Select id="subjectId" name="subjectId" defaultValue={proposal?.subjectId ?? ''}>
-                  <option value="" disabled>
-                    Choisir une matière
-                  </option>
-                  {catalog.data?.subjects.map((subject) => (
-                    <option key={subject.id} value={subject.id}>
-                      {subject.name}
-                    </option>
-                  ))}
-                </Select>
-              )}
+            <FormField id="subject" label="Matière" required error={fieldErrors.subject}>
+              <Input
+                id="subject"
+                name="subject"
+                defaultValue={proposal?.subject}
+                placeholder="Ex. Algorithmique et Structures de Données 1"
+              />
             </FormField>
 
             <FormField id="typeId" label="Type de document" required error={fieldErrors.typeId}>
@@ -130,6 +124,21 @@ export function ProposalForm({ proposal }: { proposal?: Proposal }) {
               </Select>
             </FormField>
           </div>
+
+          <FormField id="levelId" label="Niveau">
+            {catalog.loading ? (
+              <Spinner className="text-navy-400" />
+            ) : (
+              <Select id="levelId" name="levelId" defaultValue={proposal?.levelId ?? ''}>
+                <option value="">Non précisé</option>
+                {catalog.data?.levels.map((level) => (
+                  <option key={level.id} value={level.id}>
+                    {level.name}
+                  </option>
+                ))}
+              </Select>
+            )}
+          </FormField>
 
           <FormField id="academicYear" label="Année académique">
             <Select id="academicYear" name="academicYear" defaultValue={proposal?.academicYear != null ? String(proposal.academicYear) : ''}>

@@ -16,10 +16,9 @@ export const adminUserFiltersSchema = paginationSchema
 
 export type AdminUserFilters = z.infer<typeof adminUserFiltersSchema>;
 
-// ── Utilisateur (vue admin, avec noms de filière et niveau) ─────────────────
+// ── Utilisateur (vue admin, avec nom de niveau) ─────────────────────────────
 
 export const adminUserSchema = userPublicSchema.extend({
-  programName: z.string().nullable(),
   levelName: z.string().nullable(),
 });
 
@@ -50,10 +49,26 @@ export const createUserInputSchema = z.object({
     .enum(["pending", "validated", "rejected", "suspended"])
     .default("validated"),
   levelId: z.string().uuid().nullable().optional(),
-  programId: z.string().uuid().nullable().optional(),
 });
 
 export type CreateUserInput = z.infer<typeof createUserInputSchema>;
+
+// ── Modification des informations d'un compte par l'admin ───────────────────
+// Le statut n'est pas modifiable ici : il reste géré par les actions dédiées
+// (validation, refus, suspension) afin de conserver la traçabilité des motifs.
+
+export const updateUserInputSchema = z.object({
+  fullName: z
+    .string()
+    .trim()
+    .min(2, "Le nom doit contenir au moins 2 caractères")
+    .max(100),
+  email: z.string().trim().email("Email invalide").toLowerCase(),
+  role: z.enum(["student", "admin"]),
+  levelId: z.string().uuid().nullable(),
+});
+
+export type UpdateUserInput = z.infer<typeof updateUserInputSchema>;
 
 // ── Réinitialisation de mot de passe par l'admin ────────────────────────────
 // Le mot de passe peut être imposé ; sinon le serveur en génère un temporaire.
@@ -101,8 +116,9 @@ export type ReviewProposalInput = z.infer<typeof reviewProposalInputSchema>;
 export const adminContentInputSchema = z.object({
   title: z.string().trim().min(1, "Titre requis").max(255),
   description: z.string().trim().max(2000).optional(),
-  subjectId: z.string().uuid(),
+  subject: z.string().trim().min(1, "Matière requise").max(150),
   typeId: z.string().uuid(),
+  levelId: z.string().uuid().nullable().optional(),
   academicYear: z.coerce
     .number()
     .int()

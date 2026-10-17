@@ -16,10 +16,8 @@ import {
 import { db } from "@/server/db/client";
 import {
   documents,
-  subjects,
   documentTypes,
   levels,
-  programs,
   users,
   rejections,
 } from "@/server/db/schema";
@@ -45,6 +43,7 @@ import {
   validateFileHeader,
   ValidatedFileMeta,
 } from "@/server/storage";
+import { truncateText } from "@/server/utils/text";
 
 export const documentsService = {
   // ── Liste des documents publics ───────────────────────────────────────────
@@ -93,10 +92,6 @@ export const documentsService = {
       conditions.push(eq(documents.visibility, filters.visibility));
     }
 
-    if (filters.subjectId) {
-      conditions.push(eq(documents.subjectId, filters.subjectId));
-    }
-
     if (filters.typeId) {
       conditions.push(eq(documents.typeId, filters.typeId));
     }
@@ -106,24 +101,22 @@ export const documentsService = {
     }
 
     if (filters.levelId) {
-      conditions.push(eq(subjects.levelId, filters.levelId));
+      conditions.push(eq(documents.levelId, filters.levelId));
     }
 
-    if (filters.programId) {
-      conditions.push(eq(subjects.programId, filters.programId));
-    }
+    const searchTerm = filters.q?.trim() || null;
 
     // Recherche par mots-clés : Full-text français tsvector + trigrammes pg_trgm + ILIKE
-    if (filters.q && filters.q.trim().length > 0) {
-      const qClean = filters.q.trim();
-      const searchPattern = `%${qClean}%`;
+    if (searchTerm) {
+      const searchPattern = `%${searchTerm}%`;
       conditions.push(
         or(
-          sql`${documents.searchVector} @@ plainto_tsquery('french', ${qClean})`,
-          sql`${documents.title} % ${qClean}`,
+          sql`${documents.searchVector} @@ plainto_tsquery('french', ${searchTerm})`,
+          sql`${documents.title} % ${searchTerm}`,
+          sql`${documents.subject} % ${searchTerm}`,
           ilike(documents.title, searchPattern),
           ilike(documents.description, searchPattern),
-          ilike(subjects.name, searchPattern)
+          ilike(documents.subject, searchPattern)
         )
       );
     }
@@ -141,10 +134,10 @@ export const documentsService = {
       orderByClause.push(asc(documents.title));
     } else {
       // Si une requête texte est présente sans tri explicite, on priorise la pertinence plein-texte
-      if (filters.q && filters.q.trim().length > 0) {
+      if (searchTerm) {
         orderByClause.push(
           desc(
-            sql`ts_rank(${documents.searchVector}, plainto_tsquery('french', ${filters.q.trim()}))`
+            sql`ts_rank(${documents.searchVector}, plainto_tsquery('french', ${searchTerm}))`
           )
         );
       }
@@ -152,20 +145,22 @@ export const documentsService = {
       orderByClause.push(desc(documents.publishedAt), desc(documents.createdAt));
     }
 
+    // Requête de comptage allégée : aucune jointure, aucune colonne lourde.
+    const countQuery = db
+      .select({ total: count() })
+      .from(documents)
+      .where(whereClause);
+
     const [totalResult, rows] = await Promise.all([
-      db
-        .select({ total: count() })
-        .from(documents)
-        .innerJoin(subjects, eq(documents.subjectId, subjects.id))
-        .innerJoin(documentTypes, eq(documents.typeId, documentTypes.id))
-        .where(whereClause),
+      countQuery,
       db
         .select({
           id: documents.id,
           title: documents.title,
           description: documents.description,
-          subjectId: documents.subjectId,
-          subjectName: subjects.name,
+          subject: documents.subject,
+          levelId: documents.levelId,
+          levelName: levels.name,
           typeId: documents.typeId,
           typeName: documentTypes.name,
           academicYear: documents.academicYear,
@@ -178,8 +173,8 @@ export const documentsService = {
           publishedAt: documents.publishedAt,
         })
         .from(documents)
-        .innerJoin(subjects, eq(documents.subjectId, subjects.id))
         .innerJoin(documentTypes, eq(documents.typeId, documentTypes.id))
+        .leftJoin(levels, eq(documents.levelId, levels.id))
         .where(whereClause)
         .orderBy(...orderByClause)
         .limit(pageSize)
@@ -191,9 +186,10 @@ export const documentsService = {
     const items: DocumentSummary[] = rows.map((r) => ({
       id: r.id,
       title: r.title,
-      description: r.description,
-      subjectId: r.subjectId,
-      subjectName: r.subjectName,
+      description: truncateText(r.description),
+      subject: r.subject,
+      levelId: r.levelId,
+      levelName: r.levelName ?? null,
       typeId: r.typeId,
       typeName: r.typeName,
       academicYear: r.academicYear,
@@ -219,12 +215,9 @@ export const documentsService = {
         id: documents.id,
         title: documents.title,
         description: documents.description,
-        subjectId: documents.subjectId,
-        subjectName: subjects.name,
-        levelId: subjects.levelId,
+        subject: documents.subject,
+        levelId: documents.levelId,
         levelName: levels.name,
-        programId: subjects.programId,
-        programName: programs.name,
         typeId: documents.typeId,
         typeName: documentTypes.name,
         academicYear: documents.academicYear,
@@ -240,10 +233,8 @@ export const documentsService = {
         publishedAt: documents.publishedAt,
       })
       .from(documents)
-      .innerJoin(subjects, eq(documents.subjectId, subjects.id))
       .innerJoin(documentTypes, eq(documents.typeId, documentTypes.id))
-      .leftJoin(levels, eq(subjects.levelId, levels.id))
-      .leftJoin(programs, eq(subjects.programId, programs.id))
+      .leftJoin(levels, eq(documents.levelId, levels.id))
       .leftJoin(users, eq(documents.uploadedBy, users.id))
       .where(eq(documents.id, id))
       .limit(1);
@@ -268,12 +259,9 @@ export const documentsService = {
       id: doc.id,
       title: doc.title,
       description: doc.description,
-      subjectId: doc.subjectId,
-      subjectName: doc.subjectName,
+      subject: doc.subject,
       levelId: doc.levelId,
-      levelName: doc.levelName,
-      programId: doc.programId,
-      programName: doc.programName,
+      levelName: doc.levelName ?? null,
       typeId: doc.typeId,
       typeName: doc.typeName,
       academicYear: doc.academicYear,
@@ -413,8 +401,9 @@ export const documentsService = {
       .values({
         title: meta.title.trim(),
         description: meta.description?.trim() ?? null,
-        subjectId: meta.subjectId,
+        subject: meta.subject.trim(),
         typeId: meta.typeId,
+        levelId: meta.levelId ?? null,
         academicYear: meta.academicYear ?? null,
         visibility: meta.visibility ?? "students",
         status: "approved",
@@ -492,8 +481,9 @@ export const documentsService = {
         ...(meta.description !== undefined
           ? { description: meta.description?.trim() ?? null }
           : {}),
-        ...(meta.subjectId ? { subjectId: meta.subjectId } : {}),
+        ...(meta.subject ? { subject: meta.subject.trim() } : {}),
         ...(meta.typeId ? { typeId: meta.typeId } : {}),
+        ...(meta.levelId !== undefined ? { levelId: meta.levelId } : {}),
         ...(meta.academicYear !== undefined
           ? { academicYear: meta.academicYear }
           : {}),

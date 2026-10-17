@@ -78,7 +78,7 @@ export function ProposalsView() {
                   </div>
                   <h3 className="text-base font-semibold text-navy-900">{proposal.title}</h3>
                   <p className="text-xs text-navy-400">
-                    {proposal.subjectName} · {formatAcademicYear(proposal.academicYear)} · proposé le{' '}
+                    {proposal.subject} · {formatAcademicYear(proposal.academicYear)} · proposé le{' '}
                     {formatDate(proposal.createdAt)}
                   </p>
                   {!proposal.contentAvailable && proposal.status !== 'approved' && (

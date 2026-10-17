@@ -16,7 +16,6 @@ const adminCreateUserSchema = z.object({
   role: z.enum(["student", "admin"]).default("student"),
   status: z.enum(["pending", "validated", "rejected", "suspended"]).default("validated"),
   levelId: z.string().uuid().nullable().optional(),
-  programId: z.string().uuid().nullable().optional(),
 });
 
 export const GET = apiHandler(async (req: NextRequest) => {

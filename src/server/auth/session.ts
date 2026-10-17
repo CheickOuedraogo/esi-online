@@ -61,7 +61,6 @@ export async function getSessionUserByToken(
       role: users.role,
       status: users.status,
       mustChangePassword: users.mustChangePassword,
-      programId: users.programId,
       levelId: users.levelId,
       createdAt: users.createdAt,
     })
@@ -85,7 +84,6 @@ export async function getSessionUserByToken(
       role: row.role,
       status: row.status,
       mustChangePassword: row.mustChangePassword,
-      programId: row.programId,
       levelId: row.levelId,
       createdAt: row.createdAt.toISOString(),
     },

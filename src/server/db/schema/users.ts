@@ -9,7 +9,7 @@ import {
   pgEnum,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
-import { levels, programs } from "./catalog";
+import { levels } from "./catalog";
 
 export const roleEnum = pgEnum("role", ["student", "admin"]);
 export const userStatusEnum = pgEnum("user_status", [
@@ -27,9 +27,6 @@ export const users = pgTable("users", {
   role: roleEnum("role").notNull().default("student"),
   status: userStatusEnum("status").notNull().default("pending"),
   mustChangePassword: boolean("must_change_password").notNull().default(false),
-  programId: uuid("program_id").references(() => programs.id, {
-    onDelete: "set null",
-  }),
   levelId: uuid("level_id").references(() => levels.id, {
     onDelete: "set null",
   }),
@@ -42,10 +39,6 @@ export const users = pgTable("users", {
 });
 
 export const usersRelations = relations(users, ({ one }) => ({
-  program: one(programs, {
-    fields: [users.programId],
-    references: [programs.id],
-  }),
   level: one(levels, {
     fields: [users.levelId],
     references: [levels.id],

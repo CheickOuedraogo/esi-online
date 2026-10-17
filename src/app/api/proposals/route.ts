@@ -1,5 +1,5 @@
 // POST - Création d'une proposition par un étudiant (fichier + métadonnées en multipart/form-data).
-// Entrée : multipart/form-data (file, title, description, subjectId, typeId, academicYear).
+// Entrée : multipart/form-data (file, title, description, subject, typeId, levelId, academicYear).
 // Sortie : Proposal (contracts/proposals).
 // Service : proposalsService.createProposal. Rôle : étudiant validé (ou admin).
 
@@ -24,8 +24,9 @@ export const POST = apiHandler(async (req: NextRequest) => {
   const rawMeta = {
     title: formData.get("title"),
     description: formData.get("description") || undefined,
-    subjectId: formData.get("subjectId"),
+    subject: formData.get("subject"),
     typeId: formData.get("typeId"),
+    levelId: formData.get("levelId") || undefined,
     academicYear: formData.get("academicYear") || undefined,
   };
 

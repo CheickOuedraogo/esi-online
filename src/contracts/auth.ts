@@ -29,7 +29,6 @@ export const registerInputSchema = z.object({
     .string()
     .min(8, "Le mot de passe doit contenir au moins 8 caractères")
     .max(128),
-  programId: z.string().uuid("Filière invalide"),
   levelId: z.string().uuid("Niveau invalide"),
 });
 
@@ -73,7 +72,6 @@ export const userPublicSchema = z.object({
   role: z.enum(["student", "admin"]),
   status: z.enum(["pending", "validated", "rejected", "suspended"]),
   mustChangePassword: z.boolean(),
-  programId: z.string().uuid().nullable(),
   levelId: z.string().uuid().nullable(),
   createdAt: z.string().datetime(),
 });

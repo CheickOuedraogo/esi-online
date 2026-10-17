@@ -1,4 +1,4 @@
-// Filtres de la bibliotheque (niveau, matiere, type, annee, tri).
+// Filtres de la bibliotheque (niveau, type, annee, tri).
 
 import { Select } from '@/components/ui';
 import type { Sort } from '@/contracts/common';
@@ -7,7 +7,6 @@ import type { CatalogResponse } from '@/contracts/catalog';
 export interface LibraryFilters {
   q: string;
   levelId: string;
-  subjectId: string;
   typeId: string;
   year: string;
   sort: Sort;
@@ -17,7 +16,6 @@ export interface LibraryFilters {
 export const EMPTY_FILTERS: LibraryFilters = {
   q: '',
   levelId: '',
-  subjectId: '',
   typeId: '',
   year: '',
   sort: 'recent',
@@ -32,7 +30,10 @@ export const ACADEMIC_YEAR_OPTIONS = ACADEMIC_YEARS.map((label) => ({
   label,
 }));
 
-const SORTS: Array<{ value: Sort; label: 'Plus récents' | 'Plus téléchargés' | 'Titre (A→Z)' }> = [
+export const SORT_OPTIONS: Array<{
+  value: Sort;
+  label: 'Plus récents' | 'Plus téléchargés' | 'Titre (A→Z)';
+}> = [
   { value: 'recent', label: 'Plus récents' },
   { value: 'popular', label: 'Plus téléchargés' },
   { value: 'title', label: 'Titre (A→Z)' },
@@ -46,36 +47,19 @@ export interface DocumentFiltersProps {
 }
 
 export function DocumentFilters({ catalog, value, onChange, onReset }: DocumentFiltersProps) {
-  const subjects = catalog.subjects.filter(
-    (subject) => !value.levelId || subject.levelId === value.levelId,
-  );
-
-  const hasFilters = Boolean(value.levelId || value.subjectId || value.typeId || value.year);
+  const hasFilters = Boolean(value.levelId || value.typeId || value.year);
 
   return (
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
       <Select
         aria-label="Niveau"
         value={value.levelId}
-        onChange={(event) => onChange({ levelId: event.target.value, subjectId: '', page: 1 })}
+        onChange={(event) => onChange({ levelId: event.target.value, page: 1 })}
       >
         <option value="">Tous les niveaux</option>
         {catalog.levels.map((level) => (
           <option key={level.id} value={level.id}>
             {level.name}
-          </option>
-        ))}
-      </Select>
-
-      <Select
-        aria-label="Matière"
-        value={value.subjectId}
-        onChange={(event) => onChange({ subjectId: event.target.value, page: 1 })}
-      >
-        <option value="">Toutes les matières</option>
-        {subjects.map((subject) => (
-          <option key={subject.id} value={subject.id}>
-            {subject.name}
           </option>
         ))}
       </Select>
@@ -112,7 +96,7 @@ export function DocumentFilters({ catalog, value, onChange, onReset }: DocumentF
           value={value.sort}
           onChange={(event) => onChange({ sort: event.target.value as Sort, page: 1 })}
         >
-          {SORTS.map((option) => (
+          {SORT_OPTIONS.map((option) => (
             <option key={option.value} value={option.value}>
               {option.label}
             </option>

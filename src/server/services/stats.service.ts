@@ -6,12 +6,13 @@ import { db } from "@/server/db/client";
 import {
   users,
   documents,
-  subjects,
+  levels,
   documentTypes,
   passwordResetRequests,
 } from "@/server/db/schema";
 import { AdminStats } from "@/contracts/admin";
 import { DocumentSummary } from "@/contracts/documents";
+import { truncateText } from "@/server/utils/text";
 
 export const statsService = {
   async getDashboardStats(): Promise<AdminStats> {
@@ -55,8 +56,9 @@ export const statsService = {
           id: documents.id,
           title: documents.title,
           description: documents.description,
-          subjectId: documents.subjectId,
-          subjectName: subjects.name,
+          subject: documents.subject,
+          levelId: documents.levelId,
+          levelName: levels.name,
           typeId: documents.typeId,
           typeName: documentTypes.name,
           academicYear: documents.academicYear,
@@ -69,8 +71,8 @@ export const statsService = {
           publishedAt: documents.publishedAt,
         })
         .from(documents)
-        .innerJoin(subjects, eq(documents.subjectId, subjects.id))
         .innerJoin(documentTypes, eq(documents.typeId, documentTypes.id))
+        .leftJoin(levels, eq(documents.levelId, levels.id))
         .where(eq(documents.status, "approved"))
         .orderBy(desc(documents.downloadCount), desc(documents.publishedAt))
         .limit(5),
@@ -79,9 +81,10 @@ export const statsService = {
     const topDownloadedDocuments: DocumentSummary[] = topDocsRows.map((r) => ({
       id: r.id,
       title: r.title,
-      description: r.description,
-      subjectId: r.subjectId,
-      subjectName: r.subjectName,
+      description: truncateText(r.description),
+      subject: r.subject,
+      levelId: r.levelId,
+      levelName: r.levelName ?? null,
       typeId: r.typeId,
       typeName: r.typeName,
       academicYear: r.academicYear,

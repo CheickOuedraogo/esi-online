@@ -6,7 +6,6 @@ import { eq, and, desc, count } from "drizzle-orm";
 import { db } from "@/server/db/client";
 import {
   documents,
-  subjects,
   documentTypes,
   rejections,
   users,
@@ -31,6 +30,7 @@ import {
   validateFileHeader,
   ValidatedFileMeta,
 } from "@/server/storage";
+import { truncateText } from "@/server/utils/text";
 
 const RETENTION_MS = PROPOSAL_RETENTION_DAYS * 24 * 60 * 60 * 1000;
 
@@ -84,8 +84,9 @@ export const proposalsService = {
       .values({
         title: input.title.trim(),
         description: input.description?.trim() ?? null,
-        subjectId: input.subjectId,
+        subject: input.subject.trim(),
         typeId: input.typeId,
+        levelId: input.levelId ?? null,
         academicYear: input.academicYear ?? null,
         visibility: "students",
         status: "pending",
@@ -107,8 +108,8 @@ export const proposalsService = {
         id: documents.id,
         title: documents.title,
         description: documents.description,
-        subjectId: documents.subjectId,
-        subjectName: subjects.name,
+        subject: documents.subject,
+        levelId: documents.levelId,
         levelName: levels.name,
         typeId: documents.typeId,
         typeName: documentTypes.name,
@@ -124,9 +125,8 @@ export const proposalsService = {
         rejectionReason: rejections.reason,
       })
       .from(documents)
-      .innerJoin(subjects, eq(documents.subjectId, subjects.id))
       .innerJoin(documentTypes, eq(documents.typeId, documentTypes.id))
-      .leftJoin(levels, eq(subjects.levelId, levels.id))
+      .leftJoin(levels, eq(documents.levelId, levels.id))
       .leftJoin(users, eq(documents.uploadedBy, users.id))
       .leftJoin(
         rejections,
@@ -141,9 +141,9 @@ export const proposalsService = {
     return rows.map((r) => ({
       id: r.id,
       title: r.title,
-      description: r.description,
-      subjectId: r.subjectId,
-      subjectName: r.subjectName,
+      description: truncateText(r.description),
+      subject: r.subject,
+      levelId: r.levelId,
       typeId: r.typeId,
       typeName: r.typeName,
       academicYear: r.academicYear,
@@ -229,8 +229,8 @@ export const proposalsService = {
           id: documents.id,
           title: documents.title,
           description: documents.description,
-          subjectId: documents.subjectId,
-          subjectName: subjects.name,
+          subject: documents.subject,
+          levelId: documents.levelId,
           typeId: documents.typeId,
           typeName: documentTypes.name,
           academicYear: documents.academicYear,
@@ -246,9 +246,8 @@ export const proposalsService = {
         levelName: levels.name,
       })
       .from(documents)
-      .innerJoin(subjects, eq(documents.subjectId, subjects.id))
       .innerJoin(documentTypes, eq(documents.typeId, documentTypes.id))
-      .leftJoin(levels, eq(subjects.levelId, levels.id))
+      .leftJoin(levels, eq(documents.levelId, levels.id))
       .leftJoin(users, eq(documents.uploadedBy, users.id))
       .leftJoin(
         rejections,
@@ -268,9 +267,9 @@ export const proposalsService = {
     const items: Proposal[] = rows.map((r) => ({
       id: r.id,
       title: r.title,
-      description: r.description,
-      subjectId: r.subjectId,
-      subjectName: r.subjectName,
+      description: truncateText(r.description),
+      subject: r.subject,
+      levelId: r.levelId,
       typeId: r.typeId,
       typeName: r.typeName,
       academicYear: r.academicYear,
@@ -317,8 +316,9 @@ export const proposalsService = {
           ...(input.description !== undefined
             ? { description: input.description?.trim() ?? null }
             : {}),
-          ...(input.subjectId ? { subjectId: input.subjectId } : {}),
+          ...(input.subject ? { subject: input.subject.trim() } : {}),
           ...(input.typeId ? { typeId: input.typeId } : {}),
+          ...(input.levelId !== undefined ? { levelId: input.levelId } : {}),
           ...(input.academicYear !== undefined
             ? { academicYear: input.academicYear }
             : {}),
@@ -356,8 +356,9 @@ export const proposalsService = {
           ...(input.description !== undefined
             ? { description: input.description?.trim() ?? null }
             : {}),
-          ...(input.subjectId ? { subjectId: input.subjectId } : {}),
+          ...(input.subject ? { subject: input.subject.trim() } : {}),
           ...(input.typeId ? { typeId: input.typeId } : {}),
+          ...(input.levelId !== undefined ? { levelId: input.levelId } : {}),
           ...(input.academicYear !== undefined
             ? { academicYear: input.academicYear }
             : {}),
@@ -371,8 +372,8 @@ export const proposalsService = {
         id: documents.id,
         title: documents.title,
         description: documents.description,
-        subjectId: documents.subjectId,
-        subjectName: subjects.name,
+        subject: documents.subject,
+        levelId: documents.levelId,
         levelName: levels.name,
         typeId: documents.typeId,
         typeName: documentTypes.name,
@@ -388,9 +389,8 @@ export const proposalsService = {
         rejectionReason: rejections.reason,
       })
       .from(documents)
-      .innerJoin(subjects, eq(documents.subjectId, subjects.id))
       .innerJoin(documentTypes, eq(documents.typeId, documentTypes.id))
-      .leftJoin(levels, eq(subjects.levelId, levels.id))
+      .leftJoin(levels, eq(documents.levelId, levels.id))
       .leftJoin(users, eq(documents.uploadedBy, users.id))
       .leftJoin(
         rejections,
@@ -406,8 +406,8 @@ export const proposalsService = {
       id: updated.id,
       title: updated.title,
       description: updated.description,
-      subjectId: updated.subjectId,
-      subjectName: updated.subjectName,
+      subject: updated.subject,
+      levelId: updated.levelId,
       typeId: updated.typeId,
       typeName: updated.typeName,
       academicYear: updated.academicYear,
@@ -436,8 +436,8 @@ export const proposalsService = {
         id: documents.id,
         title: documents.title,
         description: documents.description,
-        subjectId: documents.subjectId,
-        subjectName: subjects.name,
+        subject: documents.subject,
+        levelId: documents.levelId,
         typeId: documents.typeId,
         typeName: documentTypes.name,
         academicYear: documents.academicYear,
@@ -454,9 +454,8 @@ export const proposalsService = {
         rejectionReason: rejections.reason,
       })
       .from(documents)
-      .innerJoin(subjects, eq(documents.subjectId, subjects.id))
       .innerJoin(documentTypes, eq(documents.typeId, documentTypes.id))
-      .leftJoin(levels, eq(subjects.levelId, levels.id))
+      .leftJoin(levels, eq(documents.levelId, levels.id))
       .leftJoin(users, eq(documents.uploadedBy, users.id))
       .leftJoin(
         rejections,
@@ -482,8 +481,8 @@ export const proposalsService = {
       id: item.id,
       title: item.title,
       description: item.description,
-      subjectId: item.subjectId,
-      subjectName: item.subjectName,
+      subject: item.subject,
+      levelId: item.levelId,
       typeId: item.typeId,
       typeName: item.typeName,
       academicYear: item.academicYear,
@@ -570,8 +569,9 @@ export const proposalsService = {
         ...(input.description !== undefined
           ? { description: input.description?.trim() ?? null }
           : {}),
-        ...(input.subjectId ? { subjectId: input.subjectId } : {}),
+        ...(input.subject ? { subject: input.subject.trim() } : {}),
         ...(input.typeId ? { typeId: input.typeId } : {}),
+        ...(input.levelId !== undefined ? { levelId: input.levelId } : {}),
         ...(input.academicYear !== undefined
           ? { academicYear: input.academicYear }
           : {}),

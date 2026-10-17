@@ -10,13 +10,14 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Button, Spinner, buttonClassName } from '@/components/ui';
 import { SkipLink } from '@/components/layout/SkipLink';
+import { LibraryIcon, UploadIcon } from '@/components/layout/NavIcons';
 import { logout } from '@/lib/api-client/auth';
 import { useRequireRole } from '@/lib/hooks/useSession';
 import { cn } from '@/lib/utils';
 
 const NAV = [
-  { href: '/library', label: 'Bibliothèque' },
-  { href: '/proposals', label: 'Mes propositions' },
+  { href: '/library', label: 'Bibliothèque', icon: LibraryIcon },
+  { href: '/proposals', label: 'Mes propositions', icon: UploadIcon },
 ];
 
 const MENU_ID = 'student-menu';
@@ -52,18 +53,20 @@ export function StudentShell({ children }: { children: React.ReactNode }) {
           <nav className="hidden items-center gap-1 sm:flex">
             {NAV.map((item) => {
               const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+              const Icon = item.icon;
               return (
                 <Link
                   key={item.href}
                   href={item.href}
                   aria-current={active ? 'page' : undefined}
                   className={cn(
-                    'rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                    'flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
                     active
                       ? 'bg-navy-50 text-navy-900'
                       : 'text-navy-600 hover:bg-navy-50 hover:text-navy-900',
                   )}
                 >
+                  <Icon className={cn(active ? 'text-navy-700' : 'text-navy-400')} />
                   {item.label}
                 </Link>
               );
@@ -72,12 +75,9 @@ export function StudentShell({ children }: { children: React.ReactNode }) {
 
           <div className="hidden items-center gap-3 sm:flex">
             {authed ? (
-              <>
-                <span className="text-sm text-navy-600">{user.fullName}</span>
-                <Button variant="secondary" size="sm" onClick={handleLogout}>
-                  Déconnexion
-                </Button>
-              </>
+              <Button variant="secondary" size="sm" onClick={handleLogout}>
+                Déconnexion
+              </Button>
             ) : (
               <>
                 <Link href="/login" className={buttonClassName({ variant: 'ghost', size: 'sm' })}>
@@ -116,6 +116,7 @@ export function StudentShell({ children }: { children: React.ReactNode }) {
             <nav className="mx-auto flex max-w-6xl flex-col gap-1 px-4 py-3">
               {NAV.map((item) => {
                 const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+                const Icon = item.icon;
                 return (
                   <Link
                     key={item.href}
@@ -123,22 +124,20 @@ export function StudentShell({ children }: { children: React.ReactNode }) {
                     onClick={() => setOpen(false)}
                     aria-current={active ? 'page' : undefined}
                     className={cn(
-                      'rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
+                      'flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
                       active ? 'bg-navy-50 text-navy-900' : 'text-navy-600 hover:bg-navy-50',
                     )}
                   >
+                    <Icon className={cn(active ? 'text-navy-700' : 'text-navy-400')} />
                     {item.label}
                   </Link>
                 );
               })}
               <div className="mt-1 border-t border-navy-50 pt-3">
                 {authed ? (
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="text-sm text-navy-600">{user.fullName}</span>
-                    <Button variant="secondary" size="sm" onClick={handleLogout}>
-                      Déconnexion
-                    </Button>
-                  </div>
+                  <Button variant="secondary" size="sm" onClick={handleLogout}>
+                    Déconnexion
+                  </Button>
                 ) : (
                   <div className="flex flex-col gap-2">
                     <Link href="/login" className={buttonClassName({ variant: 'secondary', size: 'md' })}>

@@ -3,7 +3,7 @@
 
 import { eq } from "drizzle-orm";
 import { db } from "@/server/db/client";
-import { users, passwordResetRequests, levels, programs } from "@/server/db/schema";
+import { users, passwordResetRequests, levels } from "@/server/db/schema";
 import {
   RegisterInput,
   LoginInput,
@@ -40,7 +40,6 @@ function toUserPublic(row: typeof users.$inferSelect): UserPublic {
     role: row.role,
     status: row.status,
     mustChangePassword: row.mustChangePassword,
-    programId: row.programId,
     levelId: row.levelId,
     createdAt: row.createdAt.toISOString(),
   };
@@ -61,22 +60,15 @@ export const authService = {
       throw new ConflictError("Cet email est déjà associé à un compte");
     }
 
-    // Vérifie que le niveau et la filière existent
-    const [levelExists, programExists] = await Promise.all([
-      db
-        .select({ id: levels.id })
-        .from(levels)
-        .where(eq(levels.id, input.levelId))
-        .limit(1),
-      db
-        .select({ id: programs.id })
-        .from(programs)
-        .where(eq(programs.id, input.programId))
-        .limit(1),
-    ]);
+    // Vérifie que le niveau existe
+    const levelExists = await db
+      .select({ id: levels.id })
+      .from(levels)
+      .where(eq(levels.id, input.levelId))
+      .limit(1);
 
-    if (levelExists.length === 0 || programExists.length === 0) {
-      throw new ValidationError("Niveau ou filière introuvable");
+    if (levelExists.length === 0) {
+      throw new ValidationError("Niveau introuvable");
     }
 
     const passwordHash = await hashPassword(input.password);
@@ -91,7 +83,6 @@ export const authService = {
         status: "pending",
         mustChangePassword: false,
         levelId: input.levelId,
-        programId: input.programId,
       })
       .returning();
 

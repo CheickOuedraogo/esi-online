@@ -7,9 +7,12 @@ export const metadata: Metadata = {
 
 export default async function AdminProposalDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ edit?: string }>;
 }) {
   const { id } = await params;
-  return <AdminProposalDetailView id={id} />;
+  const { edit } = await searchParams;
+  return <AdminProposalDetailView id={id} editing={edit === '1'} />;
 }

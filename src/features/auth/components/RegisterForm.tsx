@@ -1,7 +1,6 @@
 'use client';
 
 // Formulaire d'inscription : nom, email, mot de passe et niveau.
-// ESI ne comporte qu'une seule filière : elle est appliquée automatiquement.
 // Charge le catalogue pour le niveau puis soumet POST /api/auth/register.
 
 import { useEffect, useState, useTransition } from 'react';
@@ -68,7 +67,6 @@ export function RegisterForm() {
       fullName,
       email,
       password,
-      programId: catalog?.programs[0]?.id ?? '00000000-0000-4000-8000-000000000000',
       levelId: levelId || '00000000-0000-4000-8000-000000000000',
     });
 

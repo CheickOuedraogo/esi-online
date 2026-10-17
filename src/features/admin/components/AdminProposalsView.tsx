@@ -1,96 +1,24 @@
 'use client';
 
-// Moderation des propositions etudiantes : consultation dans une pop-up, approbation ou rejet.
+// Liste des propositions étudiantes en attente de modération. L'approbation,
+// le rejet et la consultation se font sur la fiche dédiée (/admin/proposals/[id]).
 
 import { useState } from 'react';
 import Link from 'next/link';
-import {
-  Alert,
-  Badge,
-  Button,
-  Card,
-  EmptyState,
-  EyeIcon,
-  IconButton,
-  Label,
-  Modal,
-  PageHeader,
-  Select,
-  Spinner,
-  Textarea,
-} from '@/components/ui';
-import type { Proposal } from '@/contracts/proposals';
-import { ApiClientError } from '@/lib/api-client/client';
-import { listAdminProposals, reviewProposal } from '@/lib/api-client/admin';
+import { Alert, Badge, Card, EmptyState, PageHeader, Spinner, buttonClassName } from '@/components/ui';
+import { listAdminProposals } from '@/lib/api-client/admin';
 import { useApiResource } from '@/lib/hooks/useApiResource';
 import { Pagination } from '@/features/library';
 import {
   DOCUMENT_STATUS_LABEL,
   DOCUMENT_STATUS_VARIANT,
-  VISIBILITY_LABEL,
-  formatAcademicYear,
   formatCount,
   formatDate,
-  formatFileSize,
 } from '@/lib/labels';
 
 export function AdminProposalsView() {
   const [page, setPage] = useState(1);
   const proposals = useApiResource(() => listAdminProposals({ page }), [page]);
-  const [busyId, setBusyId] = useState<string | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [visibility, setVisibility] = useState<'students' | 'public'>('students');
-  const [selected, setSelected] = useState<Proposal | null>(null);
-  const [rejecting, setRejecting] = useState<Proposal | null>(null);
-  const [reason, setReason] = useState('');
-
-  function open(proposal: Proposal) {
-    setSelected(proposal);
-    setVisibility('students');
-    setError(null);
-  }
-
-  function askReject(proposal: Proposal) {
-    setReason('');
-    setSelected(null);
-    setRejecting(proposal);
-  }
-
-  async function approve(proposal: Proposal) {
-    setBusyId(proposal.id);
-    setNotice(null);
-    setError(null);
-    try {
-      await reviewProposal(proposal.id, { action: 'approve', visibility });
-      proposals.reload();
-      setNotice(`« ${proposal.title} » a été approuvée et publiée.`);
-      setSelected(null);
-    } catch (err) {
-      setError(err instanceof ApiClientError ? err.message : 'L’approbation a échoué.');
-    } finally {
-      setBusyId(null);
-    }
-  }
-
-  async function confirmReject() {
-    if (!rejecting) return;
-    const proposal = rejecting;
-    setBusyId(proposal.id);
-    setNotice(null);
-    setError(null);
-    try {
-      await reviewProposal(proposal.id, { action: 'reject', reason: reason.trim() || undefined });
-      proposals.reload();
-      setNotice(`« ${proposal.title} » a été rejetée.`);
-      setRejecting(null);
-      setReason('');
-    } catch (err) {
-      setError(err instanceof ApiClientError ? err.message : 'Le rejet a échoué.');
-    } finally {
-      setBusyId(null);
-    }
-  }
 
   const pendingCount = proposals.data?.items.filter((proposal) => proposal.status === 'pending').length ?? 0;
 
@@ -104,8 +32,6 @@ export function AdminProposalsView() {
       {pendingCount > 0 && (
         <Alert variant="info">{formatCount(pendingCount, 'proposition')} en attente de modération.</Alert>
       )}
-      {notice && <Alert variant="success">{notice}</Alert>}
-      {error && <Alert variant="error">{error}</Alert>}
 
       {proposals.loading ? (
         <div className="flex justify-center py-16">
@@ -124,22 +50,23 @@ export function AdminProposalsView() {
             {proposals.data.items.map((proposal) => (
               <li
                 key={proposal.id}
-                className="flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3 sm:px-5"
+                className="flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3 transition-colors hover:bg-navy-50/40 sm:px-5"
               >
                 <div className="min-w-0 flex-1 basis-full sm:basis-0">
                   <p className="truncate font-medium text-navy-900">{proposal.title}</p>
-                  <p className="mt-0.5 truncate text-xs text-navy-500">{proposal.typeName}</p>
+                  <p className="mt-0.5 truncate text-xs text-navy-500">
+                    {proposal.typeName} · {proposal.uploaderName ?? '—'} · {formatDate(proposal.createdAt)}
+                  </p>
                 </div>
                 <Badge variant={DOCUMENT_STATUS_VARIANT[proposal.status]}>
                   {DOCUMENT_STATUS_LABEL[proposal.status]}
                 </Badge>
-                <IconButton
-                  label={`Voir les détails de ${proposal.title}`}
-                  disabled={busyId === proposal.id}
-                  onClick={() => open(proposal)}
+                <Link
+                  href={`/admin/proposals/${proposal.id}`}
+                  className={buttonClassName({ variant: 'secondary', size: 'sm' })}
                 >
-                  <EyeIcon />
-                </IconButton>
+                  Visualiser
+                </Link>
               </li>
             ))}
           </ul>
@@ -155,147 +82,6 @@ export function AdminProposalsView() {
           itemLabel="proposition"
         />
       )}
-
-      <Modal open={selected !== null} onClose={() => setSelected(null)} title="Détails de la proposition">
-        {selected && (
-          <div className="max-h-[75vh] space-y-4 overflow-y-auto px-6 py-5">
-            <div>
-              <h3 className="text-base font-semibold text-navy-900">{selected.title}</h3>
-              <div className="mt-2 flex flex-wrap items-center gap-2">
-                <Badge variant={DOCUMENT_STATUS_VARIANT[selected.status]}>
-                  {DOCUMENT_STATUS_LABEL[selected.status]}
-                </Badge>
-                <Badge variant="gold">{selected.typeName}</Badge>
-                <Badge variant="navy">{VISIBILITY_LABEL[selected.visibility]}</Badge>
-              </div>
-            </div>
-
-            {selected.description && (
-              <p className="text-sm leading-relaxed text-navy-700">{selected.description}</p>
-            )}
-
-            <dl className="grid gap-x-6 gap-y-3 border-t border-navy-100 pt-4 sm:grid-cols-2">
-              <div>
-                <dt className="text-xs uppercase tracking-wide text-navy-500">Matière</dt>
-                <dd className="text-sm text-navy-900">{selected.subjectName}</dd>
-              </div>
-              <div>
-                <dt className="text-xs uppercase tracking-wide text-navy-500">Niveau</dt>
-                <dd className="text-sm text-navy-900">{selected.levelName ?? '—'}</dd>
-              </div>
-              <div>
-                <dt className="text-xs uppercase tracking-wide text-navy-500">Année</dt>
-                <dd className="text-sm text-navy-900">{formatAcademicYear(selected.academicYear)}</dd>
-              </div>
-              <div>
-                <dt className="text-xs uppercase tracking-wide text-navy-500">Proposé par</dt>
-                <dd className="text-sm text-navy-900">{selected.uploaderName ?? '—'}</dd>
-              </div>
-              <div>
-                <dt className="text-xs uppercase tracking-wide text-navy-500">Taille</dt>
-                <dd className="text-sm text-navy-900">{formatFileSize(selected.sizeBytes)}</dd>
-              </div>
-              <div>
-                <dt className="text-xs uppercase tracking-wide text-navy-500">Déposé le</dt>
-                <dd className="text-sm text-navy-900">{formatDate(selected.createdAt)}</dd>
-              </div>
-            </dl>
-
-            {selected.status === 'rejected' && selected.rejectionReason && (
-              <p className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">
-                Motif du rejet : {selected.rejectionReason}
-              </p>
-            )}
-
-            {error && <Alert variant="error">{error}</Alert>}
-
-            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-navy-100 pt-4">
-              <Link
-                href={`/admin/proposals/${selected.id}`}
-                className="text-sm font-medium text-navy-600 hover:text-navy-900"
-              >
-                Ouvrir la fiche complète
-              </Link>
-              <div className="flex flex-wrap items-center gap-2">
-                {selected.status === 'pending' ? (
-                  <>
-                    <Select
-                      aria-label="Visibilité à la publication"
-                      value={visibility}
-                      onChange={(event) => setVisibility(event.target.value as 'students' | 'public')}
-                      className="h-9 w-36"
-                    >
-                      <option value="students">Étudiants</option>
-                      <option value="public">Public</option>
-                    </Select>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="text-red-600 hover:bg-red-50"
-                      disabled={busyId === selected.id}
-                      onClick={() => askReject(selected)}
-                    >
-                      Rejeter
-                    </Button>
-                    <Button size="sm" disabled={busyId === selected.id} onClick={() => approve(selected)}>
-                      Approuver
-                    </Button>
-                  </>
-                ) : (
-                  <Button variant="secondary" size="sm" onClick={() => setSelected(null)}>
-                    Fermer
-                  </Button>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-      </Modal>
-
-      <Modal
-        open={rejecting !== null}
-        onClose={() => setRejecting(null)}
-        title="Rejeter la proposition"
-      >
-        {rejecting && (
-          <div className="space-y-4 px-6 py-5">
-            <p className="text-sm text-navy-700">
-              Vous êtes sur le point de rejeter{' '}
-              <strong className="text-navy-900">« {rejecting.title} »</strong>. Un motif est requis :
-              il sera communiqué à l’étudiant.
-            </p>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="proposal-reason">Motif du rejet</Label>
-              <Textarea
-                id="proposal-reason"
-                value={reason}
-                onChange={(event) => setReason(event.target.value)}
-                rows={3}
-                maxLength={500}
-                required
-                placeholder="Expliquez pourquoi cette proposition est refusée…"
-              />
-            </div>
-
-            {error && <Alert variant="error">{error}</Alert>}
-
-            <div className="flex justify-end gap-2 border-t border-navy-100 pt-4">
-              <Button variant="secondary" onClick={() => setRejecting(null)} disabled={busyId !== null}>
-                Annuler
-              </Button>
-              <Button
-                variant="danger"
-                onClick={confirmReject}
-                loading={busyId === rejecting.id}
-                disabled={reason.trim().length === 0}
-              >
-                Rejeter
-              </Button>
-            </div>
-          </div>
-        )}
-      </Modal>
     </div>
   );
 }
