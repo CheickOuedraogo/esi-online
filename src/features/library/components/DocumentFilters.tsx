@@ -22,13 +22,24 @@ export const EMPTY_FILTERS: LibraryFilters = {
   page: 1,
 };
 
-export const ACADEMIC_YEARS = ['2025-2026', '2024-2025', '2023-2024'] as const;
+// Génère dynamiquement les années académiques (l'année universitaire courante + 5 années antérieures).
+export function getAcademicYearOptions(): Array<{ value: string; label: string }> {
+  const now = new Date();
+  // Si nous sommes avant octobre, l'année universitaire a débuté l'année passée
+  const startYear = now.getMonth() >= 8 ? now.getFullYear() : now.getFullYear() - 1;
+  const options: Array<{ value: string; label: string }> = [];
+  for (let i = 0; i < 6; i++) {
+    const y = startYear - i;
+    options.push({
+      value: String(y),
+      label: `${y}-${y + 1}`,
+    });
+  }
+  return options;
+}
 
-// L'année académique est stockée et transmise à l'API comme année de début (ex. 2025).
-export const ACADEMIC_YEAR_OPTIONS = ACADEMIC_YEARS.map((label) => ({
-  value: String(Number(label.slice(0, 4))),
-  label,
-}));
+export const ACADEMIC_YEAR_OPTIONS = getAcademicYearOptions();
+export const ACADEMIC_YEARS = ACADEMIC_YEAR_OPTIONS.map((o) => o.label);
 
 export const SORT_OPTIONS: Array<{
   value: Sort;

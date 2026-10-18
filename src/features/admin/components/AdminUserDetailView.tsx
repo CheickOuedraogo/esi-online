@@ -11,6 +11,7 @@ import {
   Alert,
   Badge,
   Button,
+  buttonClassName,
   Card,
   CardContent,
   Label,
@@ -45,6 +46,7 @@ export function AdminUserDetailView({ id, editing = false }: { id: string; editi
   const [notice, setNotice] = useState<string | null>(null);
   const [decision, setDecision] = useState<Decision | null>(null);
   const [reason, setReason] = useState('');
+  const [deleting, setDeleting] = useState(false);
 
   function refresh() {
     user.reload();
@@ -82,8 +84,7 @@ export function AdminUserDetailView({ id, editing = false }: { id: string; editi
     }
   }
 
-  async function remove() {
-    if (!window.confirm('Supprimer définitivement ce compte ?')) return;
+  async function confirmDelete() {
     setBusy(true);
     setError(null);
     try {
@@ -93,6 +94,7 @@ export function AdminUserDetailView({ id, editing = false }: { id: string; editi
     } catch (err) {
       setError(err instanceof ApiClientError ? err.message : 'La suppression a échoué.');
       setBusy(false);
+      setDeleting(false);
     }
   }
 
@@ -166,15 +168,16 @@ export function AdminUserDetailView({ id, editing = false }: { id: string; editi
             <Badge variant={USER_STATUS_VARIANT[item.status]}>{USER_STATUS_LABEL[item.status]}</Badge>
             <Link
               href={`/admin/users/${item.id}?edit=1`}
-              className="inline-flex h-10 items-center rounded-lg bg-navy-700 px-4 text-sm font-medium text-cream transition-colors hover:bg-navy-800"
+              className={buttonClassName({ variant: 'secondary', size: 'sm' })}
             >
               Modifier
             </Link>
             <Button
               variant="ghost"
+              size="sm"
               className="text-red-600 hover:bg-red-50"
-              loading={busy}
-              onClick={remove}
+              disabled={busy}
+              onClick={() => setDeleting(true)}
             >
               Supprimer
             </Button>
@@ -283,6 +286,33 @@ export function AdminUserDetailView({ id, editing = false }: { id: string; editi
             </div>
           </div>
         )}
+      </Modal>
+
+      <Modal
+        open={deleting}
+        onClose={() => setDeleting(false)}
+        title="Supprimer l'utilisateur"
+      >
+        <div className="space-y-4 px-6 py-5">
+          <p className="text-sm text-navy-700">
+            Êtes-vous sûr(e) de vouloir supprimer définitivement le compte de{' '}
+            <strong className="text-navy-900">{item.fullName}</strong> ({item.email}) ?
+            Cette action est irréversible.
+          </p>
+
+          <div className="flex justify-end gap-2 border-t border-navy-100 pt-4">
+            <Button variant="secondary" onClick={() => setDeleting(false)} disabled={busy}>
+              Annuler
+            </Button>
+            <Button
+              variant="danger"
+              onClick={confirmDelete}
+              loading={busy}
+            >
+              Supprimer définitivement
+            </Button>
+          </div>
+        </div>
       </Modal>
     </div>
   );

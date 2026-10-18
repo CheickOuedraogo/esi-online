@@ -159,7 +159,7 @@ export function ProposalForm({ proposal }: { proposal?: Proposal }) {
             hint={
               editMode
                 ? `Fichier actuel : ${proposal?.originalFilename}. Laissez vide pour le conserver.`
-                : 'Formats acceptés : PDF, DOC, DOCX.'
+                : 'Formats acceptés : PDF, DOCX, PPTX, JPG, PNG, ZIP (max 50 Mo).'
             }
           >
             <input
@@ -167,13 +167,13 @@ export function ProposalForm({ proposal }: { proposal?: Proposal }) {
               name="file"
               type="file"
               ref={fileRef}
-              accept=".pdf,.doc,.docx,application/pdf"
+              accept=".pdf,.docx,.pptx,.jpg,.jpeg,.png,.zip"
               className="block w-full text-sm text-navy-600 file:mr-3 file:rounded-lg file:border-0 file:bg-navy-50 file:px-3 file:py-2 file:text-sm file:font-medium file:text-navy-700 hover:file:bg-navy-100"
             />
           </FormField>
 
           <div className="flex items-center justify-end gap-3 pt-2">
-            <Button type="button" variant="secondary" onClick={() => router.back()}>
+            <Button type="button" variant="secondary" onClick={() => router.push('/proposals')}>
               Annuler
             </Button>
             <Button type="submit" loading={isPending}>
@@ -187,8 +187,7 @@ export function ProposalForm({ proposal }: { proposal?: Proposal }) {
 
           {editMode && (
             <p className="text-xs text-navy-400">
-              En enregistrant, votre proposition repasse en attente de validation et le délai de
-              conservation du fichier (3 jours) est réinitialisé.
+              En enregistrant, votre proposition repasse en attente d’examen par un administrateur.
             </p>
           )}
         </form>

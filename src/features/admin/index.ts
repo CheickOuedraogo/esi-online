@@ -8,4 +8,4 @@ export { AdminDocumentDetailView } from './components/AdminDocumentDetailView';
 export { AdminProposalsView } from './components/AdminProposalsView';
 export { AdminProposalDetailView } from './components/AdminProposalDetailView';
 export { AdminResetRequestsView } from './components/AdminResetRequestsView';
-export { AdminCatalogView } from './components/AdminCatalogView';
+export { AdminCatalogSection } from './components/AdminCatalogSection';

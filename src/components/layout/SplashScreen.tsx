@@ -58,9 +58,16 @@ export function SplashScreen({
 
   return (
     <div
+      role="button"
+      tabIndex={0}
+      onClick={() => setPhase('fading')}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape') setPhase('fading');
+      }}
+      aria-label="Passer l'écran d'accueil"
       aria-hidden={phase === 'fading'}
       className={cn(
-        'fixed inset-0 z-50 flex flex-col items-center justify-center bg-gradient-to-b from-navy-800 to-navy-950',
+        'fixed inset-0 z-50 flex cursor-pointer select-none flex-col items-center justify-center bg-gradient-to-b from-navy-800 to-navy-950',
         'transition-opacity duration-300',
         phase === 'fading' ? 'pointer-events-none opacity-0' : 'opacity-100',
       )}

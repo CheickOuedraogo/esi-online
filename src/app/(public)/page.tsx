@@ -12,8 +12,8 @@ const PRIMARY_ON_DARK =
 const SECONDARY_ON_DARK =
   'inline-flex h-12 items-center justify-center rounded-lg border border-white/60 bg-white/10 px-8 text-base font-medium text-cream transition-colors hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-navy-900';
 
-const DOCUMENT_TYPES = ['Licence', 'Master', "Tests d'entrée"] as const;
-const LEVELS = ['Licence 1', 'Licence 2', 'Licence 3', 'Master 1', 'Master 2'] as const;
+const DOCUMENT_TYPES = ['Cours', 'Travaux Dirigés (TD)', 'Travaux Pratiques (TP)', 'Examens', 'Corrigés', 'Mémoires', 'Autres'] as const;
+const LEVELS = ['L1 (Licence 1)', 'L2 (Licence 2)', 'L3 (Licence 3)', 'M1 (Master 1)', 'M2 (Master 2)'] as const;
 
 const FEATURES = [
   {
@@ -119,11 +119,11 @@ export default function HomePage() {
               Supérieure d&apos;Informatique.
             </p>
             <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row motion-safe:animate-fade-up">
-              <Link href="/login" className={PRIMARY_ON_DARK}>
-                Connexion
+              <Link href="/documents" className={PRIMARY_ON_DARK}>
+                Explorer les documents
               </Link>
-              <Link href="/register" className={SECONDARY_ON_DARK}>
-                S&apos;inscrire
+              <Link href="/login" className={SECONDARY_ON_DARK}>
+                Connexion
               </Link>
             </div>
           </div>
@@ -190,11 +190,11 @@ export default function HomePage() {
             <Reveal from="left">
               <SectionLabel>Les contenus</SectionLabel>
               <h2 className="mt-3 text-2xl font-semibold tracking-tight text-navy-900 sm:text-3xl">
-                Licence, Master et tests d&apos;entrée
+                Cycle Licence et Master de l&apos;ESI
               </h2>
               <p className="mt-4 max-w-2xl text-sm text-navy-600 sm:text-base">
-                La bibliothèque couvre tous les niveaux de l&apos;ESI, avec plusieurs types de
-                documents.
+                La bibliothèque couvre tous les niveaux de l&apos;ESI, avec l&apos;ensemble des types de
+                documents académiques.
               </p>
             </Reveal>
             <Reveal from="up">
@@ -238,15 +238,14 @@ export default function HomePage() {
                 Prêt à retrouver vos premiers documents&nbsp;?
               </h2>
               <p className="mx-auto mt-3 max-w-md text-sm text-cream/75 sm:text-base">
-                Ouvrez un compte gratuit en une minute et accédez à toute la bibliothèque dès la
-                validation de votre profil.
+                Ouvrez un compte gratuit en une minute ou explorez dès maintenant les documents publics.
               </p>
               <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
                 <Link href="/register" className={PRIMARY_ON_DARK}>
                   Créer mon compte
                 </Link>
-                <Link href="/login" className={SECONDARY_ON_DARK}>
-                  J&apos;ai déjà un compte
+                <Link href="/documents" className={SECONDARY_ON_DARK}>
+                  Consulter les documents
                 </Link>
               </div>
             </div>

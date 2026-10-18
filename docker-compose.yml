@@ -1,3 +1,9 @@
+# docker-compose.yml : pile de production VPS — PostgreSQL, application Next.js
+# (migrations automatiques au démarrage), reverse proxy Caddy (HTTPS automatique)
+# et sauvegardes quotidiennes (base + fichiers, rotation 7/28 jours).
+#
+# Configuration entière via .env — voir .env.example et DEPLOY.md.
+
 services:
   postgres:
     image: postgres:16-alpine
@@ -6,11 +12,13 @@ services:
     environment:
       POSTGRES_DB: esi_library
       POSTGRES_USER: esi
-      POSTGRES_PASSWORD: esi
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD manquant dans .env}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      # Exposé uniquement sur localhost : accès DB depuis l'hôte (psql,
+      # drizzle studio) sans ouvrir Postgres au réseau.
+      - "127.0.0.1:5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U esi -d esi_library"]
       interval: 5s
@@ -29,27 +37,62 @@ services:
     env_file:
       - .env
     environment:
-      - DATABASE_URL=postgres://esi:esi@postgres:5432/esi_library
+      - DATABASE_URL=postgres://esi:${POSTGRES_PASSWORD}@postgres:5432/esi_library
+      - NODE_ENV=production
     volumes:
+      # Documents téléversés stockés sur le disque du VPS.
+      # Le conteneur tourne en uid 1001 : dossier créé avec `chown 1001:1001`
+      # (voir DEPLOY.md / scripts/deploy.sh).
       - ./uploads:/app/uploads
-    ports:
-      - "3000:3000"
+    # Pas de port exposé sur l'hôte : le trafic passe par Caddy (80/443).
+    # Pour un débogage temporaire : docker compose exec app wget -qO- http://127.0.0.1:3000/api/health
+    expose:
+      - "3000"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/api/health | grep -q '\"status\":\"ok\"'"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
 
   caddy:
     image: caddy:2-alpine
     container_name: esi_caddy
     restart: unless-stopped
     depends_on:
-      - app
+      app:
+        condition: service_healthy
     ports:
       - "80:80"
       - "443:443"
+      - "443:443/udp" # HTTP/3
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
 
+  # Sauvegardes quotidiennes à 02:00 (heure du conteneur UTC) :
+  # pg_dump de la base + archive tar des fichiers téléversés.
+  # Rotation : 7 sauvegardes quotidiennes, 4 hebdomadaires (voir scripts/backup.sh).
+  backup:
+    build:
+      context: .
+      dockerfile: ops/backup.Dockerfile
+    container_name: esi_backup
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://esi:${POSTGRES_PASSWORD}@postgres:5432/esi_library
+      BACKUP_DIR: /backups
+      UPLOAD_DIR: /app/uploads
+    volumes:
+      - ./uploads:/app/uploads:ro
+      - backups_data:/backups
+
 volumes:
   postgres_data:
   caddy_data:
   caddy_config:
+  backups_data:

@@ -1,7 +1,7 @@
 # Caddyfile : terminaison HTTPS (certificats automatiques) et reverse proxy
 # du domaine public vers l'application Next.js (service app, port 3000).
 
-:80 {
+{$APP_DOMAIN::80} {
     reverse_proxy app:3000
 
     encode gzip zstd
@@ -13,5 +13,8 @@
         X-Frame-Options "SAMEORIGIN"
         Referrer-Policy "strict-origin-when-cross-origin"
         Permissions-Policy "camera=(), microphone=(), geolocation=()"
+        # HSTS : force HTTPS sur les prochaines visites (ignoré en HTTP pur,
+        # actif dès que APP_DOMAIN est un domaine réel avec certificat).
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
     }
 }

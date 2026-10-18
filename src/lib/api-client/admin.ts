@@ -14,7 +14,7 @@ import type {
   UpdateUserStatusInput,
 } from '@/contracts/admin';
 import type { Paginated } from '@/contracts/common';
-import type { DocumentItem, DocumentListQuery } from '@/contracts/documents';
+import type { DocumentItem, AdminDocumentFilters } from '@/contracts/documents';
 import type { CreateProposalInput, Proposal, ProposalFilters } from '@/contracts/proposals';
 import { apiFetch, apiUpload, buildQuery } from './client';
 
@@ -49,7 +49,7 @@ export function deleteUser(id: string): Promise<void> {
 }
 
 export function listAdminDocuments(
-  params: Partial<Omit<DocumentListQuery, 'sort'>> & { sort?: DocumentListQuery['sort'] } = {},
+  params: Partial<Omit<AdminDocumentFilters, 'sort'>> & { sort?: AdminDocumentFilters['sort'] } = {},
 ): Promise<Paginated<DocumentItem>> {
   return apiFetch<Paginated<DocumentItem>>(`/api/admin/documents${buildQuery(params)}`);
 }

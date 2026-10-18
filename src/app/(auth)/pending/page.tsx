@@ -18,16 +18,18 @@ export default function PendingPage() {
       </CardHeader>
       <CardContent className="space-y-4">
         <Alert variant="info">
-          Vous serez prévenu(e) par e-mail dès que votre compte sera validé.
+          Les validations de comptes sont traitées manuellement par l’équipe d’administration de l’ESI.
+          Une fois votre inscription validée, vous pourrez vous connecter pour accéder à l’ensemble des ressources privées et proposer vos documents.
         </Alert>
-        <Alert variant="info">
-          Pour le moment, les e-mails ne sont pas envoyés automatiquement : un administrateur traite
-          les validations manuellement, cela peut donc prendre un peu de temps. L&apos;envoi
-          automatique arrivera plus tard.
-        </Alert>
-        <Link href="/" className={buttonClassName({ variant: 'secondary', fullWidth: true })}>
-          Retour à l&apos;accueil
-        </Link>
+
+        <div className="flex flex-col gap-2 pt-2">
+          <Link href="/documents" className={buttonClassName({ variant: 'primary', fullWidth: true })}>
+            Consulter les documents en libre accès
+          </Link>
+          <Link href="/" className={buttonClassName({ variant: 'secondary', fullWidth: true })}>
+            Retour à l&apos;accueil
+          </Link>
+        </div>
       </CardContent>
     </Card>
   );

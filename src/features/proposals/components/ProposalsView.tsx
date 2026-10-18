@@ -4,7 +4,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Alert, Badge, Button, Card, CardContent, EmptyState, PageHeader, Spinner } from '@/components/ui';
+import { Alert, Badge, Button, Card, CardContent, EmptyState, PageHeader, Spinner, buttonClassName } from '@/components/ui';
 import { deleteProposal, listMyProposals } from '@/lib/api-client/proposals';
 import { useApiResource } from '@/lib/hooks/useApiResource';
 import {
@@ -36,7 +36,7 @@ export function ProposalsView() {
         actions={
           <Link
             href="/proposals/new"
-              className="inline-flex h-10 whitespace-nowrap items-center rounded-lg bg-navy-700 px-4 text-sm font-medium text-cream transition-colors hover:bg-navy-800"
+            className={buttonClassName({ variant: 'primary', size: 'md' })}
           >
             Proposer un document
           </Link>
@@ -58,7 +58,7 @@ export function ProposalsView() {
           action={
             <Link
               href="/proposals/new"
-            className="inline-flex h-10 whitespace-nowrap items-center rounded-lg bg-navy-700 px-4 text-sm font-medium text-cream transition-colors hover:bg-navy-800"
+              className={buttonClassName({ variant: 'primary', size: 'md' })}
             >
               Proposer un document
             </Link>
@@ -83,7 +83,7 @@ export function ProposalsView() {
                   </p>
                   {!proposal.contentAvailable && proposal.status !== 'approved' && (
                     <p className="text-xs text-navy-400">
-                      Fichier supprimé après 3 jours (stockage) — modifiez pour en renvoyer un.
+                      Fichier non disponible — modifiez la proposition pour en renvoyer un.
                     </p>
                   )}
                   {proposal.status === 'rejected' && proposal.rejectionReason && (

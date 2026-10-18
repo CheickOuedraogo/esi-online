@@ -6,7 +6,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Alert, Badge, Button, Card, CardContent, PageHeader, Spinner } from '@/components/ui';
+import { Alert, Badge, Button, Card, CardContent, Modal, PageHeader, Spinner } from '@/components/ui';
 import { DocumentPreview } from '@/components/documents/DocumentPreview';
 import { ApiClientError } from '@/lib/api-client/client';
 import { deleteDocument, getAdminDocument, updateAdminDocument } from '@/lib/api-client/admin';
@@ -22,9 +22,9 @@ export function AdminDocumentDetailView({ id, editing = false }: { id: string; e
   const catalog = useApiResource(() => getCatalog(), []);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   async function remove() {
-    if (!window.confirm('Supprimer définitivement ce document ?')) return;
     setBusy(true);
     setError(null);
     try {
@@ -34,6 +34,7 @@ export function AdminDocumentDetailView({ id, editing = false }: { id: string; e
     } catch (err) {
       setError(err instanceof ApiClientError ? err.message : 'La suppression a échoué.');
       setBusy(false);
+      setDeleting(false);
     }
   }
 
@@ -124,8 +125,7 @@ export function AdminDocumentDetailView({ id, editing = false }: { id: string; e
             <Button
               variant="ghost"
               className="text-red-600 hover:bg-red-50"
-              loading={busy}
-              onClick={remove}
+              onClick={() => setDeleting(true)}
             >
               Supprimer
             </Button>
@@ -155,6 +155,26 @@ export function AdminDocumentDetailView({ id, editing = false }: { id: string; e
         <h2 className="text-sm font-semibold uppercase tracking-wide text-navy-500">Aperçu</h2>
         <DocumentPreview url={documentFileUrl(item.id)} filename={item.originalFilename} />
       </div>
+
+      <Modal open={deleting} onClose={() => setDeleting(false)} title="Supprimer le document">
+        <div className="space-y-4 px-6 py-5">
+          <p className="text-sm text-navy-700">
+            Supprimer définitivement le document{' '}
+            <strong className="text-navy-900">{item.title}</strong> ? Cette action est irréversible.
+          </p>
+
+          {error && <Alert variant="error">{error}</Alert>}
+
+          <div className="flex justify-end gap-2 border-t border-navy-100 pt-4">
+            <Button variant="secondary" onClick={() => setDeleting(false)} disabled={busy}>
+              Annuler
+            </Button>
+            <Button variant="danger" onClick={remove} loading={busy}>
+              Supprimer définitivement
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

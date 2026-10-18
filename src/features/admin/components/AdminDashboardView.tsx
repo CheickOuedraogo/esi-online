@@ -1,11 +1,12 @@
 'use client';
 
-// Tableau de bord administrateur : statistiques et documents populaires.
+// Tableau de bord administrateur : statistiques et gestion du catalogue.
 
 import Link from 'next/link';
 import { Alert, Card, CardContent, PageHeader, Spinner } from '@/components/ui';
 import { getAdminStats } from '@/lib/api-client/admin';
 import { useApiResource } from '@/lib/hooks/useApiResource';
+import { AdminCatalogSection } from './AdminCatalogSection';
 
 const STAT_LABELS: Array<{
   key: 'pendingUsersCount' | 'pendingProposalsCount' | 'pendingResetRequestsCount';
@@ -47,62 +48,45 @@ export function AdminDashboardView() {
         description="Vue d’ensemble de l’activité de la bibliothèque."
       />
 
-      <div className="grid gap-4 sm:grid-cols-3">
-        {STAT_LABELS.map((stat) => (
-          <Link key={stat.key} href={stat.href} className="group">
-            <Card className="h-full border-l-4 border-l-gold-400 transition-all hover:-translate-y-0.5 hover:shadow-md">
+      <div className="space-y-3">
+        <h2 className="text-xs font-semibold uppercase tracking-wide text-navy-500">
+          Actions prioritaires en attente
+        </h2>
+        <div className="grid gap-4 sm:grid-cols-3">
+          {STAT_LABELS.map((stat) => (
+            <Link key={stat.key} href={stat.href} className="group">
+              <Card className="h-full border-l-4 border-l-gold-400 transition-all hover:-translate-y-0.5 hover:shadow-md">
+                <CardContent>
+                  <p className="text-sm font-medium text-navy-500">{stat.label}</p>
+                  <p className="mt-2 text-3xl font-semibold text-gold-600">{data[stat.key]}</p>
+                </CardContent>
+              </Card>
+            </Link>
+          ))}
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        <h2 className="text-xs font-semibold uppercase tracking-wide text-navy-500">
+          Statistiques globales
+        </h2>
+        <div className="grid gap-4 sm:grid-cols-3">
+          {metrics.map((metric) => (
+            <Card key={metric.label}>
               <CardContent>
-                <p className="text-sm font-medium text-navy-500">{stat.label}</p>
-                <p className="mt-2 text-3xl font-semibold text-gold-600">{data[stat.key]}</p>
+                <p className="text-sm font-medium text-navy-500">{metric.label}</p>
+                <p className="mt-2 text-2xl font-semibold text-navy-900">{metric.value}</p>
               </CardContent>
             </Card>
-          </Link>
-        ))}
+          ))}
+        </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-3">
-        {metrics.map((metric) => (
-          <Card key={metric.label}>
-            <CardContent>
-              <p className="text-sm font-medium text-navy-500">{metric.label}</p>
-              <p className="mt-2 text-2xl font-semibold text-navy-900">{metric.value}</p>
-            </CardContent>
-          </Card>
-        ))}
+      <div className="space-y-3">
+        <h2 className="text-xs font-semibold uppercase tracking-wide text-navy-500">Catalogue</h2>
+        <p className="text-sm text-navy-500">Gérez les niveaux et les types de documents.</p>
+        <AdminCatalogSection />
       </div>
-
-      <Card>
-        <CardContent className="py-6">
-          <h2 className="text-base font-semibold text-navy-900">Documents les plus téléchargés</h2>
-          {data.topDownloadedDocuments.length === 0 ? (
-            <p className="mt-3 text-sm text-navy-500">Aucune donnée disponible.</p>
-          ) : (
-            <ol className="mt-4 space-y-2">
-              {data.topDownloadedDocuments.map((document, index) => (
-                <li
-                  key={document.id}
-                  className="flex items-center justify-between gap-3 rounded-lg border border-navy-50 px-3 py-2.5 transition-colors hover:border-navy-100 hover:bg-navy-50/50"
-                >
-                  <span className="flex min-w-0 items-center gap-3">
-                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-navy-50 text-xs font-semibold text-navy-600">
-                      {index + 1}
-                    </span>
-                    <Link
-                      href={`/library/${document.id}`}
-                      className="truncate text-sm font-medium text-navy-800 hover:text-navy-600"
-                    >
-                      {document.title}
-                    </Link>
-                  </span>
-                  <span className="shrink-0 text-sm text-navy-400">
-                    {document.downloadCount} téléchargements
-                  </span>
-                </li>
-              ))}
-            </ol>
-          )}
-        </CardContent>
-      </Card>
     </div>
   );
 }

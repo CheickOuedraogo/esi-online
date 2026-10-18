@@ -98,6 +98,7 @@ export function LibraryView() {
               type="button"
               onClick={() => setFavoritesOnly((current) => !current)}
               aria-pressed={favoritesOnly}
+              title="Favoris enregistrés sur ce navigateur"
               className={cn(
                 'inline-flex h-10 items-center justify-center gap-2 whitespace-nowrap rounded-lg border px-3 text-sm font-medium transition-colors',
                 favoritesOnly
@@ -136,7 +137,7 @@ export function LibraryView() {
             title="Aucun favori"
             description={
               favorites.count === 0
-                ? 'Ajoutez des documents en favoris grâce à l’étoile sur chaque carte.'
+                ? 'Ajoutez des documents en favoris grâce à l’étoile sur chaque carte (enregistrés localement sur cet appareil).'
                 : 'Aucun favori ne correspond à votre recherche.'
             }
           />

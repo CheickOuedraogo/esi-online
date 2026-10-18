@@ -74,6 +74,20 @@ export async function getSessionUserByToken(
   }
 
   const row = found[0];
+
+  // Session glissante (7 jours) : si plus de la moitié de la durée s'est écoulée,
+  // on prolonge automatiquement l'expiration en base de données.
+  const remainingMs = row.expiresAt.getTime() - now.getTime();
+  if (remainingMs < SESSION_TTL_MS / 2) {
+    const newExpiresAt = new Date(now.getTime() + SESSION_TTL_MS);
+    db.update(sessions)
+      .set({ expiresAt: newExpiresAt })
+      .where(eq(sessions.id, row.sessionId))
+      .catch((err) => {
+        console.error("⚠️ Échec prolongation session glissante :", err);
+      });
+  }
+
   return {
     sessionId: row.sessionId,
     expiresAt: row.expiresAt,

@@ -1,0 +1,36 @@
+# Dépendances et builds
+node_modules
+.next
+out
+build
+*.tsbuildinfo
+next-env.d.ts
+
+# Secrets : ne doivent jamais entrer dans l'image Docker
+.env
+.env.*
+!.env.example
+
+# Données et sauvegardes (montées via volumes au runtime)
+uploads
+backups
+
+# Divers
+.git
+.gitignore
+.claude
+.vscode
+.DS_Store
+coverage
+tests
+# scripts/ exclu sauf backup.sh (nécessaire à l'image ops/backup.Dockerfile)
+scripts/*
+!scripts/backup.sh
+docs
+*.log
+README.md
+DEPLOY.md
+cahierCharge.md
+LICENSE
+docker-compose.yml
+Caddyfile

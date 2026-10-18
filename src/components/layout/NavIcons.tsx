@@ -74,15 +74,6 @@ export function ResetIcon({ className }: NavIconProps) {
   );
 }
 
-export function CatalogIcon({ className }: NavIconProps) {
-  return (
-    <Base className={className}>
-      <path d="M3 6.5A2.5 2.5 0 0 1 5.5 4H10a2 2 0 0 1 2 2v14a2 2 0 0 0-2-2H5.5A2.5 2.5 0 0 0 3 20.5Z" />
-      <path d="M21 6.5A2.5 2.5 0 0 0 18.5 4H14a2 2 0 0 0-2 2v14a2 2 0 0 1 2-2h4.5a2.5 2.5 0 0 1 2.5 2.5Z" />
-    </Base>
-  );
-}
-
 export function LibraryIcon({ className }: NavIconProps) {
   return (
     <Base className={className}>

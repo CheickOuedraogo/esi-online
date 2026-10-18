@@ -10,7 +10,6 @@ import { usePathname, useRouter } from 'next/navigation';
 import { Button, Spinner, buttonClassName } from '@/components/ui';
 import { SkipLink } from '@/components/layout/SkipLink';
 import {
-  CatalogIcon,
   DashboardIcon,
   DocumentsIcon,
   ProposalsIcon,
@@ -28,7 +27,6 @@ const NAV = [
   { href: '/admin/documents', label: 'Documents', icon: DocumentsIcon },
   { href: '/admin/proposals', label: 'Propositions', icon: ProposalsIcon },
   { href: '/admin/reset-requests', label: 'Réinitialisations', icon: ResetIcon },
-  { href: '/admin/catalog', label: 'Catalogue', icon: CatalogIcon },
 ];
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
@@ -44,6 +42,13 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     await logout().catch(() => undefined);
     router.replace('/');
   }
+
+  const currentNavItem = NAV.find((item) =>
+    item.exact
+      ? pathname === item.href
+      : pathname === item.href || pathname.startsWith(`${item.href}/`),
+  );
+  const currentTitle = currentNavItem ? currentNavItem.label : 'Administration';
 
   return (
     <div className="min-h-dvh bg-cream">
@@ -127,7 +132,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                   </svg>
                 </button>
               )}
-              <span className="text-base font-semibold text-navy-900">Administration</span>
+              <span className="text-base font-semibold text-navy-900">{currentTitle}</span>
             </div>
 
             <div className="flex items-center gap-3">

@@ -19,6 +19,10 @@ export function useRequireRole(role: 'student' | 'admin'): { user: AuthUser | nu
     me()
       .then((current) => {
         if (!active) return;
+        if (current.mustChangePassword) {
+          router.replace('/change-password');
+          return;
+        }
         if (role === 'admin' && current.role !== 'admin') {
           router.replace('/library');
           return;

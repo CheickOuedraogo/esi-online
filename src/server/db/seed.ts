@@ -155,7 +155,7 @@ async function seed() {
       .insert(users)
       .values({
         fullName: "Étudiant Démo",
-        email: "etudiant@esi.dz",
+        email: "etudiant@esi.bf",
         passwordHash: demoPasswordHash,
         role: "student",
         status: "validated",
@@ -163,20 +163,20 @@ async function seed() {
         levelId: demoLevelId,
       })
       .returning();
-    console.log("  ✓ Étudiant de démonstration : etudiant@esi.dz / Etudiant123!");
+    console.log("  ✓ Étudiant de démonstration : etudiant@esi.bf / Etudiant123!");
 
     const [pendingStudent] = await db
       .insert(users)
       .values({
         fullName: "Awa Traoré",
-        email: "awa.traore@esi.dz",
+        email: "awa.traore@esi.bf",
         passwordHash: demoPasswordHash,
         role: "student",
         status: "pending",
         levelId: demoLevelId,
       })
       .returning();
-    console.log("  ✓ Étudiant en attente : awa.traore@esi.dz");
+    console.log("  ✓ Étudiant en attente : awa.traore@esi.bf");
 
     const approvedDocs: Array<{
       title: string;

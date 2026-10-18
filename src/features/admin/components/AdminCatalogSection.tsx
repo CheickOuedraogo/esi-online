@@ -1,21 +1,11 @@
 'use client';
 
-// Gestion du catalogue (niveaux, types de documents) :
+// Gestion du catalogue (niveaux, types de documents) intégrée au tableau de bord :
 // création, modification et suppression depuis le back-office.
 // L'ESI est une école unique : pas de filière, la matière d'un document est un texte libre.
 
 import { useState } from 'react';
-import {
-  Alert,
-  Badge,
-  Button,
-  Card,
-  CardContent,
-  Modal,
-  PageHeader,
-  Spinner,
-  useToast,
-} from '@/components/ui';
+import { Alert, Badge, Button, Card, CardContent, Modal, Spinner, useToast } from '@/components/ui';
 import { ApiClientError } from '@/lib/api-client/client';
 import {
   createDocumentType,
@@ -73,7 +63,7 @@ function CatalogEntityCard({
     <Card>
       <CardContent className="py-5">
         <div className="flex items-center justify-between gap-4">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-navy-500">{title}</h2>
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-navy-500">{title}</h3>
           <Button size="sm" variant="secondary" onClick={() => onAdd(kind)}>
             Ajouter
           </Button>
@@ -111,7 +101,7 @@ function CatalogEntityCard({
   );
 }
 
-export function AdminCatalogView() {
+export function AdminCatalogSection() {
   const catalog = useApiResource(() => getCatalog(), []);
   const { toast } = useToast();
 
@@ -190,7 +180,7 @@ export function AdminCatalogView() {
 
   if (catalog.loading) {
     return (
-      <div className="flex justify-center py-16">
+      <div className="flex justify-center py-10">
         <Spinner className="h-7 w-7 text-navy-400" label="Chargement du catalogue" />
       </div>
     );
@@ -203,12 +193,7 @@ export function AdminCatalogView() {
   const { levels, documentTypes } = catalog.data;
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Catalogue"
-        description="Gérez les niveaux et les types de documents."
-      />
-
+    <div className="space-y-4">
       <div className="grid gap-4 sm:grid-cols-2">
         <CatalogEntityCard
           title="Niveaux"

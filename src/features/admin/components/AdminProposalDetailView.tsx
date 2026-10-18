@@ -11,6 +11,7 @@ import {
   Alert,
   Badge,
   Button,
+  buttonClassName,
   Card,
   CardContent,
   Label,
@@ -50,6 +51,7 @@ export function AdminProposalDetailView({ id, editing = false }: { id: string; e
   const [rejecting, setRejecting] = useState(false);
   const [reason, setReason] = useState('');
   const [rejectError, setRejectError] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   async function approve() {
     setBusy(true);
@@ -84,8 +86,7 @@ export function AdminProposalDetailView({ id, editing = false }: { id: string; e
     }
   }
 
-  async function remove() {
-    if (!window.confirm('Supprimer définitivement cette proposition ?')) return;
+  async function confirmDelete() {
     setBusy(true);
     setError(null);
     try {
@@ -95,6 +96,7 @@ export function AdminProposalDetailView({ id, editing = false }: { id: string; e
     } catch (err) {
       setError(err instanceof ApiClientError ? err.message : 'La suppression a échoué.');
       setBusy(false);
+      setDeleting(false);
     }
   }
 
@@ -177,11 +179,11 @@ export function AdminProposalDetailView({ id, editing = false }: { id: string; e
             </Badge>
             <Link
               href={`/admin/proposals/${item.id}?edit=1`}
-              className="inline-flex h-10 items-center rounded-lg bg-navy-700 px-4 text-sm font-medium text-cream transition-colors hover:bg-navy-800"
+              className={buttonClassName({ variant: 'secondary', size: 'sm' })}
             >
               Modifier
             </Link>
-            <Button variant="ghost" className="text-red-600 hover:bg-red-50" loading={busy} onClick={remove}>
+            <Button variant="ghost" size="sm" className="text-red-600 hover:bg-red-50" disabled={busy} onClick={() => setDeleting(true)}>
               Supprimer
             </Button>
           </>
@@ -235,7 +237,7 @@ export function AdminProposalDetailView({ id, editing = false }: { id: string; e
           <DocumentPreview url={adminProposalFileUrl(item.id)} filename={item.originalFilename} />
         ) : (
           <Alert variant="info">
-            Le fichier a été supprimé après 3 jours pour économiser l’espace de stockage. La fiche de la
+            Le fichier associé à cette proposition n’est plus disponible sur le serveur. La fiche de la
             proposition reste consultable.
           </Alert>
         )}
@@ -275,6 +277,29 @@ export function AdminProposalDetailView({ id, editing = false }: { id: string; e
               disabled={reason.trim().length === 0}
             >
               Rejeter
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal open={deleting} onClose={() => setDeleting(false)} title="Supprimer la proposition">
+        <div className="space-y-4 px-6 py-5">
+          <p className="text-sm text-navy-700">
+            Êtes-vous sûr(e) de vouloir supprimer définitivement la proposition{' '}
+            <strong className="text-navy-900">« {item.title} »</strong> ?
+            Cette action est irréversible et supprimera le fichier associé du serveur.
+          </p>
+
+          <div className="flex justify-end gap-2 border-t border-navy-100 pt-4">
+            <Button variant="secondary" onClick={() => setDeleting(false)} disabled={busy}>
+              Annuler
+            </Button>
+            <Button
+              variant="danger"
+              onClick={confirmDelete}
+              loading={busy}
+            >
+              Supprimer définitivement
             </Button>
           </div>
         </div>
