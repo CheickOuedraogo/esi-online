@@ -19,40 +19,56 @@ Elle permet de centraliser, consulter, modérer et télécharger les ressources 
    npm install
    ```
 
-2. **Configurer l'environnement :**
+2. **Initialiser en une commande (assistant interactif) :**
    ```bash
-   cp .env.example .env
-   # Adapter les variables dans .env si nécessaire
+   npm run init
+   ```
+   L'assistant ne demande que **deux choses** :
+   - l'utilisateur PostgreSQL (défaut : `postgres`),
+   - son mot de passe (vide si aucun).
+
+   Puis, automatiquement :
+   - crée le rôle `esi`/`esi` et la base `esi_library` si besoin
+     (si rien n'écoute sur le port 5432, tente Docker Compose),
+   - génère le fichier `.env` (`SESSION_SECRET` inclus),
+   - applique les migrations Drizzle,
+   - peuple la base avec un jeu de données de démonstration,
+   - vérifie que tout fonctionne (schéma, comptes, mots de passe, stockage).
+
+   Tout le reste est pris par défaut. Pour accepter encore plus vite :
+   ```bash
+   npm run init -- --yes
    ```
 
-3. **Lancer PostgreSQL avec Docker (optionnel) :**
-   ```bash
-   docker compose up postgres -d
-   ```
+   > `npm init` (sans `run`) est une commande réservée à npm lui-même —
+   > c'est bien `npm run init` qu'il faut lancer.
 
-4. **Appliquer les migrations et peupler la base :**
-   ```bash
-   npm run db:migrate
-   npm run db:seed
-   ```
-
-5. **Lancer le serveur de développement :**
+3. **Lancer le serveur de développement :**
    ```bash
    npm run dev
    # Accessible sur http://localhost:3000
    ```
 
+### Installation manuelle (sans l'assistant)
+
+1. `cp .env.example .env` et adapter les variables.
+2. `docker compose up postgres -d` (si PostgreSQL via Docker).
+3. `npm run db:migrate && npm run db:seed`.
+
 ---
 
 ## 👥 Comptes de démonstration
 
-Après exécution de `npm run db:seed` :
+Après exécution de `npm run init` (ou `npm run db:seed`) :
 
 | Profil | E-mail | Mot de passe | Rôle / Statut |
 | :--- | :--- | :--- | :--- |
-| **Administrateur** | `admin@esi.bf` (ou selon `.env`) | `Admin123!@#` | Administrateur |
-| **Étudiant validé** | `etudiant@esi.bf` | `Etudiant123!` | Étudiant validé (accès bibliothèque & propositions) |
-| **Étudiant en attente** | `awa.traore@esi.bf` | `Etudiant123!` | En attente de validation administrateur |
+| **Administrateur** | `admin@gmail.com` (ou selon `.env`) | `admin1234` | Administrateur |
+| **Étudiant validé** | `etudiant@gmail.com` | `etudiant1234` | Étudiant validé (L1) |
+| **Étudiant validé** | `karim.diallo@gmail.com` | `karim1234` | Étudiant validé (L3) |
+| **Étudiant validé** | `fatou.traore@gmail.com` | `fatou1234` | Étudiant validé (M1) |
+| **En attente** | `awa.traore@gmail.com` | `awa1234` | En attente de validation administrateur |
+| **Suspendu** | `ibrahim.kouda@gmail.com` | `ibrahim1234` | Compte suspendu |
 
 ---
 

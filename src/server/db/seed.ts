@@ -4,7 +4,7 @@
 // L'ESI est une école unique : pas de filière, la matière est un texte libre.
 
 import { Readable } from "stream";
-import { eq, count } from "drizzle-orm";
+import { eq, count, inArray } from "drizzle-orm";
 import { db, pool } from "./client";
 import {
   levels,
@@ -139,7 +139,103 @@ async function seed() {
     console.log(`  ℹ Administrateur déjà existant : ${adminEmail}`);
   }
 
-  // 4. Jeu de données de démonstration (uniquement si aucun document n'existe)
+  // 4. Comptes de démonstration (créés s'ils manquent, indépendamment des documents)
+  const l1Id = levelMap.get("L1") ?? null;
+  const l3Id = levelMap.get("L3") ?? null;
+  const m1Id = levelMap.get("M1") ?? null;
+
+  // Jeu de comptes de démonstration (mots de passe simples, usage test uniquement)
+  const demoAccounts = [
+    {
+      fullName: "Étudiant Démo",
+      email: "etudiant@gmail.com",
+      plainPassword: "etudiant1234",
+      status: "validated" as const,
+      levelId: l1Id,
+    },
+    {
+      fullName: "Karim Diallo",
+      email: "karim.diallo@gmail.com",
+      plainPassword: "karim1234",
+      status: "validated" as const,
+      levelId: l3Id,
+    },
+    {
+      fullName: "Fatou Traoré",
+      email: "fatou.traore@gmail.com",
+      plainPassword: "fatou1234",
+      status: "validated" as const,
+      levelId: m1Id,
+    },
+    {
+      fullName: "Awa Traoré",
+      email: "awa.traore@gmail.com",
+      plainPassword: "awa1234",
+      status: "pending" as const,
+      levelId: l1Id,
+    },
+    {
+      fullName: "Ibrahim Kouda",
+      email: "ibrahim.kouda@gmail.com",
+      plainPassword: "ibrahim1234",
+      status: "suspended" as const,
+      levelId: l1Id,
+    },
+  ];
+
+  const existingEmails = new Set(
+    (
+      await db
+        .select({ email: users.email })
+        .from(users)
+        .where(
+          inArray(
+            users.email,
+            demoAccounts.map((a) => a.email)
+          )
+        )
+    ).map((row) => row.email)
+  );
+
+  const accountIds = new Map<string, string>();
+  for (const account of demoAccounts) {
+    if (existingEmails.has(account.email)) {
+      const [existing] = await db
+        .select({ id: users.id })
+        .from(users)
+        .where(eq(users.email, account.email))
+        .limit(1);
+      accountIds.set(account.email, existing.id);
+      continue;
+    }
+    const passwordHash = await hashPassword(account.plainPassword);
+    const [inserted] = await db
+      .insert(users)
+      .values({
+        fullName: account.fullName,
+        email: account.email,
+        passwordHash,
+        role: "student",
+        status: account.status,
+        mustChangePassword: false,
+        levelId: account.levelId,
+      })
+      .returning();
+    accountIds.set(account.email, inserted.id);
+    console.log(
+      `  ✓ Étudiant (${account.status}) : ${account.email} / ${account.plainPassword}`
+    );
+  }
+  if (existingEmails.size > 0) {
+    console.log(
+      `  ℹ ${existingEmails.size} compte(s) de démonstration déjà existant(s)`
+    );
+  }
+
+  const demoStudentId = accountIds.get("etudiant@gmail.com") ?? null;
+  const pendingStudentId = accountIds.get("awa.traore@gmail.com") ?? null;
+
+  // 5. Documents de démonstration (uniquement si aucun document n'existe)
   const [{ total: existingDocCount }] = await db
     .select({ total: count() })
     .from(documents);
@@ -147,36 +243,6 @@ async function seed() {
   if (existingDocCount === 0) {
     const typeRows = await db.select().from(documentTypes);
     const findType = (name: string) => typeRows.find((t) => t.name === name)?.id;
-
-    const demoLevelId = levelMap.get("L1") ?? null;
-    const demoPasswordHash = await hashPassword("Etudiant123!");
-
-    const [demoStudent] = await db
-      .insert(users)
-      .values({
-        fullName: "Étudiant Démo",
-        email: "etudiant@esi.bf",
-        passwordHash: demoPasswordHash,
-        role: "student",
-        status: "validated",
-        mustChangePassword: false,
-        levelId: demoLevelId,
-      })
-      .returning();
-    console.log("  ✓ Étudiant de démonstration : etudiant@esi.bf / Etudiant123!");
-
-    const [pendingStudent] = await db
-      .insert(users)
-      .values({
-        fullName: "Awa Traoré",
-        email: "awa.traore@esi.bf",
-        passwordHash: demoPasswordHash,
-        role: "student",
-        status: "pending",
-        levelId: demoLevelId,
-      })
-      .returning();
-    console.log("  ✓ Étudiant en attente : awa.traore@esi.bf");
 
     const approvedDocs: Array<{
       title: string;
@@ -218,6 +284,38 @@ async function seed() {
         academicYear: 2024,
         downloadCount: 3,
       },
+      {
+        title: "Bases de Données Relationnelles — Cours 1 (modèle relationnel)",
+        subject: "Bases de Données Relationnelles",
+        type: "cours",
+        visibility: "public",
+        academicYear: 2025,
+        downloadCount: 25,
+      },
+      {
+        title: "Réseaux et Protocoles — Examen 2023",
+        subject: "Réseaux et Protocoles",
+        type: "examen",
+        visibility: "students",
+        academicYear: 2023,
+        downloadCount: 12,
+      },
+      {
+        title: "Programmation Orientée Objet Java — TP 2 (classes et objets)",
+        subject: "Programmation Orientée Objet Java",
+        type: "TP",
+        visibility: "students",
+        academicYear: 2025,
+        downloadCount: 19,
+      },
+      {
+        title: "Architecture des Ordinateurs — Cours 1 (représentation des nombres)",
+        subject: "Architecture des Ordinateurs",
+        type: "cours",
+        visibility: "public",
+        academicYear: 2024,
+        downloadCount: 6,
+      },
     ];
 
     let approvedCount = 0;
@@ -231,12 +329,12 @@ async function seed() {
         description: `Document de démonstration : ${doc.title}.`,
         subject: doc.subject,
         typeId,
-        levelId: demoLevelId,
+        levelId: l1Id,
         academicYear: doc.academicYear,
         visibility: doc.visibility,
         status: "approved",
         publishedAt: new Date(),
-        uploadedBy: demoStudent.id,
+        uploadedBy: demoStudentId,
         downloadCount: doc.downloadCount,
         ...file,
       });
@@ -257,6 +355,12 @@ async function seed() {
         type: "examen",
         academicYear: 2024,
       },
+      {
+        title: "Compilation — Cours 1 (analyse lexicale)",
+        subject: "Compilation",
+        type: "cours",
+        academicYear: 2025,
+      },
     ];
 
     let proposalCount = 0;
@@ -270,27 +374,29 @@ async function seed() {
         description: `Proposition de démonstration : ${proposal.title}.`,
         subject: proposal.subject,
         typeId,
-        levelId: demoLevelId,
+        levelId: l1Id,
         academicYear: proposal.academicYear,
         visibility: "students",
         status: "pending",
-        uploadedBy: demoStudent.id,
+        uploadedBy: demoStudentId,
         ...file,
       });
       proposalCount += 1;
     }
     console.log(`  ✓ ${proposalCount} propositions en attente`);
 
-    await db.insert(passwordResetRequests).values({
-      userId: pendingStudent.id,
-      status: "pending",
-    });
-    console.log("  ✓ 1 demande de réinitialisation en attente");
+    if (pendingStudentId) {
+      await db.insert(passwordResetRequests).values({
+        userId: pendingStudentId,
+        status: "pending",
+      });
+      console.log("  ✓ 1 demande de réinitialisation en attente");
+    }
   } else {
     console.log("  ℹ Données de démonstration déjà présentes (documents existants)");
   }
 
-  console.log("🎉 Peuplement terminé avec succès !");
+  console.log("Peuplement terminé avec succès !");
 }
 
 seed()
