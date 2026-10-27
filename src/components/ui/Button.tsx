@@ -35,7 +35,7 @@ export function buttonClassName({
 }: ButtonStyleOptions): string {
   return cn(
     'inline-flex items-center justify-center rounded-lg font-medium transition-colors',
-    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400 focus-visible:ring-offset-2',
+    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-600 focus-visible:ring-offset-2',
     'disabled:cursor-not-allowed disabled:opacity-60',
     VARIANTS[variant],
     SIZES[size],

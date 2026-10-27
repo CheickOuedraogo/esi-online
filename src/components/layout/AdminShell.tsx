@@ -4,7 +4,6 @@
 // L'en-tete et la barre laterale restent visibles avant connexion.
 
 import { useState } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Button, Spinner, buttonClassName } from '@/components/ui';
@@ -58,26 +57,22 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         aria-hidden={sidebarHidden || undefined}
         inert={sidebarHidden}
         className={cn(
-          'fixed inset-y-0 left-0 z-40 flex w-64 flex-col bg-navy-900 text-cream transition-transform lg:translate-x-0',
+          'fixed inset-y-0 left-0 z-40 flex w-64 flex-col bg-navy-950 text-cream transition-transform lg:translate-x-0',
           open ? 'translate-x-0' : '-translate-x-full',
         )}
       >
-        <div className="flex h-16 items-center gap-2 border-b border-white/10 px-5">
-          <Image
-            src="/logo.jpg"
-            alt="ESI-Library"
-            width={36}
-            height={36}
-            className="h-8 w-8 rounded-lg object-cover"
-          />
+        <div className="flex h-16 items-center gap-3 border-b border-white/10 px-5">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-navy-700 text-xs font-bold text-white shadow-sm">
+            ESI
+          </div>
           <div className="leading-tight">
-            <p className="text-sm font-semibold">ESI-Library</p>
-            <p className="text-xs text-gold-300">Administration</p>
+            <p className="text-sm font-semibold text-white">ESI-Library</p>
+            <p className="text-xs text-cream/60">Administration</p>
           </div>
         </div>
 
         {authed && (
-          <nav className="flex flex-1 flex-col gap-1 p-3">
+          <nav className="flex flex-1 flex-col gap-1.5 p-3">
             {NAV.map((item) => {
               const active = item.exact
                 ? pathname === item.href
@@ -90,13 +85,13 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                   onClick={() => setOpen(false)}
                   aria-current={active ? 'page' : undefined}
                   className={cn(
-                    'flex items-center gap-3 rounded-lg border-l-2 px-3 py-2 text-sm font-medium transition-colors',
+                    'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors',
                     active
-                      ? 'border-gold-400 bg-white/10 text-cream'
-                      : 'border-transparent text-cream/70 hover:bg-white/5 hover:text-cream',
+                      ? 'bg-navy-700 text-white shadow-sm'
+                      : 'text-cream/70 hover:bg-white/10 hover:text-white',
                   )}
                 >
-                  <Icon className={cn(active ? 'text-gold-300' : 'text-cream/50')} />
+                  <Icon className={cn('h-5 w-5', active ? 'text-white' : 'text-cream/60')} />
                   {item.label}
                 </Link>
               );

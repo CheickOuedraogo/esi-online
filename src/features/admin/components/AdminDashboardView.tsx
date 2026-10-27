@@ -55,10 +55,10 @@ export function AdminDashboardView() {
         <div className="grid gap-4 sm:grid-cols-3">
           {STAT_LABELS.map((stat) => (
             <Link key={stat.key} href={stat.href} className="group">
-              <Card className="h-full border-l-4 border-l-gold-400 transition-all hover:-translate-y-0.5 hover:shadow-md">
+              <Card className="h-full border-l-4 border-l-navy-700 transition-all hover:-translate-y-0.5 hover:shadow-md">
                 <CardContent>
                   <p className="text-sm font-medium text-navy-500">{stat.label}</p>
-                  <p className="mt-2 text-3xl font-semibold text-gold-600">{data[stat.key]}</p>
+                  <p className="mt-2 text-3xl font-semibold text-navy-700">{data[stat.key]}</p>
                 </CardContent>
               </Card>
             </Link>

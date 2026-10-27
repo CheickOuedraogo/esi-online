@@ -21,7 +21,7 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(functio
       title={label}
       className={cn(
         'inline-flex h-8 w-8 items-center justify-center rounded-lg border border-navy-200 bg-white text-navy-700 transition-colors',
-        'hover:bg-navy-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400',
+        'hover:bg-navy-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-600',
         'disabled:cursor-not-allowed disabled:opacity-60',
         className,
       )}
